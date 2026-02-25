@@ -1,59 +1,94 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
+  <h1>💧 أمواج ديالى — لوحة الإدارة (Dashboard) & API 💧</h1>
+  <p>النظام الإداري المتكامل لإدارة الطلبات والمنتجات وتجهيز البيانات لتطبيق الموبايل.</p>
+</div>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
 
-## About Laravel
+## 🚀 التقنيات المستخدمة (Tech Stack)
+- **Backend (الخدمات الخلفية والـ API):** Laravel 11.x (PHP 8.2+)
+- **Frontend (لوحة التحكم):** Vue.js 3 بقوة (Composition API) مع Inertia.js
+- **Styling (التصميم):** Tailwind CSS 3.x مع خطوط Google (Tajawal)
+- **Database (قاعدة البيانات):** SQLite (في بيئة التطبيق المحلي) / MySQL (في خادم الإنتاج)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🛠️ كيف تشغل المشروع على حاسبتك (Local Development Setup)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+لكي تتمكن من تشغيل المشروع وفتحه للتطوير أو التجربة المحلية، اتبع الخطوات التالية حرفياً:
 
-## Learning Laravel
+### 1️⃣ المتطلبات المسبقة (Prerequisites)
+تأكد من تنصيب البرامج التالية على كمبيوترك:
+1. **[PHP](https://windows.php.net/download/)** (إصدار 8.2 أو أعلى).
+2. **[Composer](https://getcomposer.org/download/)** (مدير حزم PHP).
+3. **[Node.js & npm](https://nodejs.org/en/download/)** (إصدار 18 أو أعلى، لبناء ملفات الـ Vue).
+4. **Git** (لاستنساخ المشروع).
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 2️⃣ خطوات التنصيب خطوة بخطوة (Installation)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+**الخطوة 1: استنساخ المستودع (Clone the repository)**
+افتح سطر الأوامر (Terminal أو CMD) والصق الكود التالي:
+```bash
+git clone https://github.com/mustafaroot01/dashstore.git
+cd dashstore
+```
 
-## Laravel Sponsors
+**الخطوة 2: تثبيت حزم وتمديدات الـ PHP (Install PHP Dependencies)**
+```bash
+composer install
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+**الخطوة 3: تثبيت حزم السكربت و الجافاسكريبت (Install Node Dependencies)**
+```bash
+npm install
+```
 
-### Premium Partners
+**الخطوة 4: إعداد ملف البيئة (.env file)**
+قُم بنسخ ملف الإعدادات الأصلي وتسميته `.env`:
+- في الويندوز: `copy .env.example .env`
+- في الماك/لينكس: `cp .env.example .env`
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+**الخطوة 5: إنشاء مفتاح التشفير (Generate Application Key)**
+```bash
+php artisan key:generate
+```
 
-## Contributing
+**الخطوة 6: إعداد قاعدة البيانات (Run Database Migrations & Seeders)**
+سيقوم هذا الأمر بإنشاء الجداول وحقنها بالبيانات التجريبية (بما فيها حساب المشرف العام):
+```bash
+php artisan migrate:fresh --seed
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3️⃣ تشغيل المشروع (Running the Project)
 
-## Code of Conduct
+ستحتاج إلى تشغيل أمرين **معاً في نفس الوقت** (افتح نافذتين Terminal مختلفتين):
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**النافذة الأولى (لتشغيل سرفر الـ PHP):**
+```bash
+php artisan serve
+```
 
-## Security Vulnerabilities
+**النافذة الثانية (لتشغيل سرفر الـ Vue.js وبناء التصميم):**
+```bash
+# للمطورين (يُحدث التغييرات حياً)
+npm run dev
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# أو إذا أردت بناء النظام نهائياً
+npm run build
+```
 
-## License
+🎉 **مبروك!** المشروع يعمل الآن. 
+يمكنك الدخول إلى لوحة التحكم عبر المتصفح عن طريق الرابط:
+[http://127.0.0.1:8000/panel/login](http://127.0.0.1:8000/panel/login)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**بيانات دخول المشرف الافتراضي (إذا قمت بعمل Seed):**
+- البريد: `admin@root.com`
+- كلمة المرور: `root123`
+
+---
+
+## 📚 هيكلية الـ API (للموبايل)
+توثيق الـ API متاح داخل لوحة التحكم بعد تسجيل الدخول (تبويب: "الواجهة البرمجية API"). يمكنك من هناك مراجعة كافة المسارات اللازمة للربط مع `Flutter`.
+
+## 📜 رخصة المشروع (License)
+هذا النظام مُلك خاص لمشروع "أمواج ديالى". جميع الحقوق محفوظة.
