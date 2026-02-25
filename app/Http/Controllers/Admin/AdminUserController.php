@@ -43,6 +43,10 @@ class AdminUserController extends Controller
 
     public function update(Request $request, Admin $admin)
     {
+        if ($admin->id === 1) {
+            return back()->with('error', 'لا يمكن التعديل على صاحب الحساب الرئيسي.');
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:150', 'unique:admins,email,' . $admin->id],
@@ -67,6 +71,10 @@ class AdminUserController extends Controller
 
     public function destroy(Admin $admin)
     {
+        if ($admin->id === 1) {
+            return back()->with('error', 'لا يمكن حذف حساب المشرف الرئيسي.');
+        }
+
         // Don't allow an admin to delete themselves to prevent accidental lockouts
         if ($admin->id === auth('admin')->id()) {
             return back()->with('error', 'عذراً لا يمكنك حذف حسابك الشخصي أثناء تسجيل الدخول منه.');

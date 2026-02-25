@@ -95,6 +95,12 @@ Route::prefix('panel')->name('admin.')->group(function () {
             Route::patch('coupons/{coupon}/toggle-active', [Admin\CouponController::class, 'toggleActive'])->name('coupons.toggle-active');
         });
 
+        // Inventory & Reports
+        Route::middleware('admin.can:manage_inventory')->group(function () {
+            Route::get('inventory', [Admin\InventoryController::class, 'index'])->name('inventory.index');
+            Route::get('inventory/export', [Admin\InventoryController::class, 'export'])->name('inventory.export');
+        });
+
         // Admin Roles & Supervisor management
         Route::middleware('admin.can:manage_admins_roles')->group(function () {
             Route::get('roles', [Admin\RoleController::class, 'index'])->name('roles.index');

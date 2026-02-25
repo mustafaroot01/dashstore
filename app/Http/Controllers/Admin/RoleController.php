@@ -16,6 +16,7 @@ class RoleController extends Controller
         'manage_users' => 'إدارة الزبائن',
         'manage_content' => 'إدارة السلايدات الترويجية',
         'manage_financial' => 'إدارة الكوبونات وتفاصيل المبيعات',
+        'manage_inventory' => 'إدارة التقارير والجرد',
         'manage_settings' => 'إدارة الإعدادات العامة للشركة',
         'manage_admins_roles' => 'إدارة المشرفين والصلاحيات',
     ];

@@ -49,15 +49,20 @@
                 </td>
                 <td class="p-4 text-center">
                   <div class="flex items-center justify-center gap-2">
-                    <button @click="openEditModal(admin)" class="btn text-blue-600 bg-blue-50 hover:bg-blue-100 border-none px-3 text-xs py-1.5" title="تعديل">
-                      تعديل
-                    </button>
-                    <button v-if="admin.id !== authAdminId" @click="confirmDelete(admin)" class="btn text-red-600 bg-red-50 hover:bg-red-100 border-none px-3 text-xs py-1.5" title="حذف">
-                      حذف
-                    </button>
-                    <button v-else class="btn text-slate-400 bg-slate-50 border-none px-3 text-xs py-1.5 cursor-not-allowed" title="لا يمكنك حذف نفسك">
-                      أنت
-                    </button>
+                    <template v-if="admin.id !== 1">
+                      <button @click="openEditModal(admin)" class="btn text-blue-600 bg-blue-50 hover:bg-blue-100 border-none px-3 text-xs py-1.5" title="تعديل">
+                        تعديل
+                      </button>
+                      <button v-if="admin.id !== authAdminId" @click="confirmDelete(admin)" class="btn text-red-600 bg-red-50 hover:bg-red-100 border-none px-3 text-xs py-1.5" title="حذف">
+                        حذف
+                      </button>
+                      <button v-else class="btn text-slate-400 bg-slate-50 border-none px-3 text-xs py-1.5 cursor-not-allowed" title="لا يمكنك حذف نفسك">
+                        أنت
+                      </button>
+                    </template>
+                    <template v-else>
+                      <span class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg border-none" title="الحساب الرئيسي محمي">حساب محمي</span>
+                    </template>
                   </div>
                 </td>
               </tr>

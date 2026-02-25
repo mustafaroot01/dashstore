@@ -44,19 +44,25 @@
         <SidebarLink v-if="hasPermission('manage_content')" :href="route('admin.sliders.index')" icon="sliders" label="السلايدات" />
         <SidebarLink v-if="hasPermission('manage_financial')" :href="route('admin.coupons.index')" icon="coupons" label="الكوبونات" />
 
-        <div v-if="hasPermission('manage_admins_roles') || hasPermission('manage_settings') || hasPermission('manage_content')" class="px-3 mt-4 mb-2">
-          <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider px-2 mb-1">إدارة النظام</p>
+        <div v-if="hasPermission('manage_admins_roles')" class="px-3 mt-4 mb-2">
+          <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider px-2 mb-1">المشرفين والصلاحيات</p>
         </div>
 
         <SidebarLink v-if="hasPermission('manage_admins_roles')" :href="route('admin.admins.index')" icon="users" label="حسابات المشرفين" />
         <SidebarLink v-if="hasPermission('manage_admins_roles')" :href="route('admin.roles.index')" icon="shield-exclamation" label="صلاحيات الأدوار" />
+
+        <div v-if="hasPermission('manage_settings') || hasPermission('manage_content')" class="px-3 mt-4 mb-2">
+          <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider px-2 mb-1">إدارة النظام</p>
+        </div>
+
         <SidebarLink v-if="hasPermission('manage_settings')" :href="route('admin.settings.index')" icon="settings" label="الإعدادات العامة" />
         <SidebarLink v-if="hasPermission('manage_content')" :href="route('admin.privacy-policy.index')" icon="document" label="سياسة الخصوصية" />
         
-        <div v-if="hasPermission('manage_settings')" class="px-3 mt-4 mb-2">
-          <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider px-2 mb-1">المراقبة</p>
+        <div v-if="hasPermission('manage_settings') || hasPermission('manage_inventory')" class="px-3 mt-4 mb-2">
+          <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider px-2 mb-1">التقارير والمراقبة</p>
         </div>
         
+        <SidebarLink v-if="hasPermission('manage_inventory')" :href="route('admin.inventory.index')" icon="document-text" label="الجرد والتقارير" />
         <SidebarLink v-if="hasPermission('manage_settings')" :href="route('admin.activity-log.index')" icon="log" label="سجل النشاطات" />
         <SidebarLink v-if="hasPermission('manage_settings')" :href="route('admin.error-log.index')" icon="shield-exclamation" label="سجلات الأخطاء" />
         <SidebarLink v-if="hasPermission('manage_settings')" :href="route('admin.api-docs.index')" icon="code-bracket" label="الواجهة البرمجية (API)" />
