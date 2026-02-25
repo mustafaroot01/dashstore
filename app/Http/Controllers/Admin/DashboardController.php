@@ -105,30 +105,38 @@ class DashboardController extends Controller
 
     private function getChartData(string $period, $from): array
     {
-        $query = Order::query()->where('status', 'delivered')->where('created_at', '>=', $from);
-
-        if ($period === 'daily') {
-            $dateExpr  = DB::raw("strftime('%H:00', created_at) as date_key");
-            $groupExpr = DB::raw("strftime('%H', created_at)");
-        } else {
-            $dateExpr  = DB::raw("date(created_at) as date_key");
-            $groupExpr = DB::raw("date(created_at)");
-        }
-
-        $data = $query
-            ->select(
-                $dateExpr,
-                DB::raw('SUM(total_price) as revenue'),
-                DB::raw('COALESCE((SELECT SUM((oi.price - oi.cost_price) * oi.quantity) FROM order_items oi WHERE oi.order_id = orders.id), 0) as profit'),
-            )
-            ->groupBy($groupExpr)
-            ->orderBy(DB::raw('date_key'))
+        $orders = Order::with('items')
+            ->where('status', 'delivered')
+            ->where('created_at', '>=', $from)
             ->get();
 
+        $grouped = $orders->groupBy(function ($order) use ($period) {
+            return $period === 'daily' 
+                ? $order->created_at->format('H:00') 
+                : $order->created_at->format('Y-m-d');
+        });
+
+        // Sort keys chronologically
+        $grouped = $grouped->sortKeys();
+
+        $labels = [];
+        $revenue = [];
+        $profit = [];
+
+        foreach ($grouped as $key => $dailyOrders) {
+            $labels[] = $key;
+            $revenue[] = round($dailyOrders->sum('total_price'), 2);
+            $profit[] = round($dailyOrders->sum(function ($order) {
+                return $order->items->sum(function ($item) {
+                    return ($item->price - $item->cost_price) * $item->quantity;
+                });
+            }), 2);
+        }
+
         return [
-            'labels'  => $data->pluck('date_key')->toArray(),
-            'revenue' => $data->pluck('revenue')->map(fn ($v) => round((float) $v, 2))->toArray(),
-            'profit'  => $data->pluck('profit')->map(fn ($v) => round((float) $v, 2))->toArray(),
+            'labels'  => $labels,
+            'revenue' => $revenue,
+            'profit'  => $profit,
         ];
     }
 }
