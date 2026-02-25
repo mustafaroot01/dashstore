@@ -27,47 +27,48 @@ class AuthController extends Controller
         ]);
     }
 
-    public function verifyOtp(Request $request)
+    public function login(Request $request)
     {
         $request->validate([
-            'phone' => ['required'],
-            'code'  => ['required'],
+            'phone'    => ['required'],
+            'password' => ['required'],
         ]);
 
-        $result = $this->otp->verifyOtp($request->phone, $request->code);
-
-        if (! ($result['success'] ?? false)) {
-            return response()->json(['success' => false, 'message' => 'رمز التحقق غير صحيح'], 422);
-        }
-
-        // Auto-login if user exists
         $user = User::where('phone', $request->phone)->first();
-        if ($user) {
-            if (! $user->is_active) {
-                return response()->json(['success' => false, 'message' => 'حسابك موقوف، تواصل مع الدعم'], 403);
-            }
-            $token = $user->createToken('api')->plainTextToken;
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
-                'success'   => true,
-                'user'      => $user,
-                'token'     => $token,
-                'is_new'    => false,
-            ]);
+                'success' => false,
+                'message' => 'رقم الهاتف أو كلمة المرور غير صحيحة',
+            ], 401);
         }
 
-        return response()->json(['success' => true, 'is_new' => true, 'phone' => $request->phone]);
+        if (! $user->is_active) {
+            return response()->json(['success' => false, 'message' => 'حسابك موقوف، تواصل مع الدعم'], 403);
+        }
+
+        $token = $user->createToken('api')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تسجيل الدخول بنجاح',
+            'user'    => $user,
+            'token'   => $token,
+        ]);
     }
 
     public function register(Request $request)
     {
         $data = $request->validate([
             'phone'      => ['required', 'unique:users,phone'],
+            'password'   => ['required', 'string', 'min:6'],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name'  => ['required', 'string', 'max:100'],
             'gender'     => ['required', 'in:male,female'],
             'address'    => ['required', 'string'],
         ]);
 
+        $data['password'] = Hash::make($data['password']);
         $user  = User::create($data);
         $token = $user->createToken('api')->plainTextToken;
 

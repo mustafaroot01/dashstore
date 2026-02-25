@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 // ── Auth (OTP) ──────────────────────────────────────────────────
 Route::prefix('auth')->group(function () {
     Route::post('send-otp',           [Api\AuthController::class, 'sendOtp']);
-    Route::post('verify-otp',         [Api\AuthController::class, 'verifyOtp']);
+    Route::post('login',              [Api\AuthController::class, 'login']);
     Route::post('register',           [Api\AuthController::class, 'register']);
     Route::post('forgot-password',    [Api\AuthController::class, 'forgotPassword']);
     Route::post('verify-reset-code',  [Api\AuthController::class, 'verifyResetCode']);
