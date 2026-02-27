@@ -145,19 +145,19 @@
             <div class="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
               <div class="flex items-start justify-between">
                 <div>
-                  <h4 class="font-bold text-slate-800 text-sm mb-1">استخراج الـ Chat ID من خلال المعرّف (Username) 🪄</h4>
+                  <h4 class="font-bold text-slate-800 text-sm mb-1">استخراج الـ Chat ID الذكي 🪄</h4>
                   <p class="text-xs text-slate-600 mb-3 max-w-lg leading-relaxed">
                     1. الصق <b>رمز البوت</b> في الحقل أعلاه.<br/>
                     2. أرسل أي رسالة للبوت من حسابك في التلغرام.<br/>
-                    3. اكتب <b>معرّفك (اليوزر) بدون @</b> في الحقل أدناه واضغط استخراج:
+                    3. اضغط <b>استخراج الآي دي</b> (يمكنك ترك حقل اليوزر فارغاً لتبسيط الأمر).
                   </p>
                   <div class="flex flex-wrap items-center gap-2 mb-2 w-full max-w-sm relative">
                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">@</span>
-                    <input v-model="searchUsername" type="text" class="form-input text-sm py-2 pl-8 w-full" placeholder="مثال: ali_tech" dir="ltr" />
+                    <input v-model="searchUsername" type="text" class="form-input text-sm py-2 pl-8 w-full" placeholder="اختياري: يوزر حسابك (مثال: ali_tech)" dir="ltr" />
                   </div>
                 </div>
                 <!-- Action Button in its own block for better mobile responsiveness if needed, but flex-items-start keeps it top-right -->
-                <button type="button" @click="fetchChatId" :disabled="isFetchingId || !form.telegram_bot_token || !searchUsername"
+                <button type="button" @click="fetchChatId" :disabled="isFetchingId || !form.telegram_bot_token"
                   class="btn-secondary text-xs px-4 py-2 mt-2 flex items-center gap-2 whitespace-nowrap min-w-[140px] justify-center">
                   <svg v-if="isFetchingId" class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                   <i v-else class="fas fa-search text-[#0088cc]"></i>
