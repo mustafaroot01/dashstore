@@ -88,14 +88,23 @@ class ProductController extends Controller
         $lowStockThreshold = (int) \App\Models\Setting::get('low_stock_threshold', 3);
         
         foreach ($product->variants as $variant) {
+            $sku = $product->sku ?? '—';
+            $colorSize = collect([$variant->color, $variant->size])->filter()->implode(' - ') ?: 'قياسي';
+
             if ($variant->stock <= 0) {
-                $colorSize = collect([$variant->color, $variant->size])->filter()->implode(' - ');
-                $variantSuffix = $colorSize ? " ({$colorSize})" : "";
-                $lowStockWarnings[] = "❌ {$product->name}{$variantSuffix} (تم الإضافة برصيد صفر!)";
+                $itemMsg = "❌ *نفدت الكمية تماماً*\n";
+                $itemMsg .= "📦 *المنتج:* {$product->name}\n";
+                $itemMsg .= "🆔 *SKU:* `{$sku}`\n";
+                $itemMsg .= "🎨 *المواصفات:* {$colorSize}\n";
+                $itemMsg .= "📝 *الحالة:* تم الإضافة برصيد (0)\n";
+                $lowStockWarnings[] = $itemMsg;
             } elseif ($variant->stock <= $lowStockThreshold) {
-                $colorSize = collect([$variant->color, $variant->size])->filter()->implode(' - ');
-                $variantSuffix = $colorSize ? " ({$colorSize})" : "";
-                $lowStockWarnings[] = "🔸 {$product->name}{$variantSuffix} (رصيد أولي قليل: {$variant->stock} قطع)";
+                $itemMsg = "🔸 *تنبيه مخزون منخفض*\n";
+                $itemMsg .= "📦 *المنتج:* {$product->name}\n";
+                $itemMsg .= "🆔 *SKU:* `{$sku}`\n";
+                $itemMsg .= "🎨 *المواصفات:* {$colorSize}\n";
+                $itemMsg .= "📉 *المتبقي:* {$variant->stock} قطع\n";
+                $lowStockWarnings[] = $itemMsg;
             }
         }
 
@@ -105,7 +114,7 @@ class ProductController extends Controller
             if ($botToken && $chatId) {
                 $dashboardName = \App\Models\Setting::get('dashboard_name', 'أمواج ديالى');
                 $message = "⚠️ *تنبيه من لوحة تحكم {$dashboardName}*\nتم إضافة منتج جديد برصيد منخفض:\n\n";
-                $message .= implode("\n", $lowStockWarnings);
+                $message .= implode("\n---\n", $lowStockWarnings);
                 
                 try {
                     \Illuminate\Support\Facades\Http::timeout(5)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
@@ -190,14 +199,23 @@ class ProductController extends Controller
         $lowStockThreshold = (int) \App\Models\Setting::get('low_stock_threshold', 3);
         
         foreach ($product->variants as $variant) {
+            $sku = $product->sku ?? '—';
+            $colorSize = collect([$variant->color, $variant->size])->filter()->implode(' - ') ?: 'قياسي';
+
             if ($variant->stock <= 0) {
-                $colorSize = collect([$variant->color, $variant->size])->filter()->implode(' - ');
-                $variantSuffix = $colorSize ? " ({$colorSize})" : "";
-                $lowStockWarnings[] = "❌ {$product->name}{$variantSuffix} (نفذت الكمية تماماً!)";
+                $itemMsg = "❌ *نفدت الكمية تماماً*\n";
+                $itemMsg .= "📦 *المنتج:* {$product->name}\n";
+                $itemMsg .= "🆔 *SKU:* `{$sku}`\n";
+                $itemMsg .= "🎨 *المواصفات:* {$colorSize}\n";
+                $itemMsg .= "📝 *الحالة:* تم التصفير يدوياً\n";
+                $lowStockWarnings[] = $itemMsg;
             } elseif ($variant->stock <= $lowStockThreshold) {
-                $colorSize = collect([$variant->color, $variant->size])->filter()->implode(' - ');
-                $variantSuffix = $colorSize ? " ({$colorSize})" : "";
-                $lowStockWarnings[] = "🔸 {$product->name}{$variantSuffix} (متبقي {$variant->stock} قطع فقط)";
+                $itemMsg = "🔸 *تنبيه مخزون منخفض*\n";
+                $itemMsg .= "📦 *المنتج:* {$product->name}\n";
+                $itemMsg .= "🆔 *SKU:* `{$sku}`\n";
+                $itemMsg .= "🎨 *المواصفات:* {$colorSize}\n";
+                $itemMsg .= "📉 *المتبقي:* {$variant->stock} قطع\n";
+                $lowStockWarnings[] = $itemMsg;
             }
         }
 
@@ -207,7 +225,7 @@ class ProductController extends Controller
             if ($botToken && $chatId) {
                 $dashboardName = \App\Models\Setting::get('dashboard_name', 'أمواج ديالى');
                 $message = "⚠️ *تنبيه من لوحة تحكم {$dashboardName}*\nتم تعديل مخزون المنتج واكتشاف نقص:\n\n";
-                $message .= implode("\n", $lowStockWarnings);
+                $message .= implode("\n---\n", $lowStockWarnings);
                 
                 try {
                     \Illuminate\Support\Facades\Http::timeout(5)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [

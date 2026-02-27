@@ -136,13 +136,22 @@ class OrderController extends Controller
                 $v['variant']->decrement('stock', $v['quantity']);
                 $v['variant']->refresh(); // Get updated stock
 
-                $colorSize = collect([$v['variant']->color, $v['variant']->size])->filter()->implode(' - ');
-                $variantSuffix = $colorSize ? " ({$colorSize})" : "";
+                $sku = $v['variant']->product->sku ?? '—';
+                $colorSize = collect([$v['variant']->color, $v['variant']->size])->filter()->implode(' - ') ?: 'قياسي';
                 
                 if ($v['variant']->stock <= 0) {
-                    $lowStockWarnings[] = "❌ {$v['variant']->product->name}{$variantSuffix} (نفذت الكمية تماماً!)";
+                    $itemWarning = "❌ *نفدت الكمية تماماً*\n";
+                    $itemWarning .= "📦 *المنتج:* {$v['variant']->product->name}\n";
+                    $itemWarning .= "🆔 *SKU:* `{$sku}`\n";
+                    $itemWarning .= "🎨 *المواصفات:* {$colorSize}\n";
+                    $lowStockWarnings[] = $itemWarning;
                 } elseif ($v['variant']->stock <= $lowStockThreshold) {
-                    $lowStockWarnings[] = "🔸 {$v['variant']->product->name}{$variantSuffix} (متبقي {$v['variant']->stock} قطع فقط)";
+                    $itemWarning = "🔸 *تنبيه مخزون منخفض*\n";
+                    $itemWarning .= "📦 *المنتج:* {$v['variant']->product->name}\n";
+                    $itemWarning .= "🆔 *SKU:* `{$sku}`\n";
+                    $itemWarning .= "🎨 *المواصفات:* {$colorSize}\n";
+                    $itemWarning .= "📉 *المتبقي:* {$v['variant']->stock} قطع فقط\n";
+                    $lowStockWarnings[] = $itemWarning;
                 }
             }
 
