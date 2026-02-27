@@ -129,8 +129,21 @@ class OrderController extends Controller
             }
 
             // Deduct stock after successful creation
+            $lowStockThreshold = (int) \App\Models\Setting::get('low_stock_threshold', 3);
+            $lowStockWarnings = [];
+
             foreach ($variantsToDeduct as $v) {
                 $v['variant']->decrement('stock', $v['quantity']);
+                $v['variant']->refresh(); // Get updated stock
+
+                $colorSize = collect([$v['variant']->color, $v['variant']->size])->filter()->implode(' - ');
+                $variantSuffix = $colorSize ? " ({$colorSize})" : "";
+                
+                if ($v['variant']->stock <= 0) {
+                    $lowStockWarnings[] = "❌ {$v['variant']->product->name}{$variantSuffix} (نفذت الكمية تماماً!)";
+                } elseif ($v['variant']->stock <= $lowStockThreshold) {
+                    $lowStockWarnings[] = "🔸 {$v['variant']->product->name}{$variantSuffix} (متبقي {$v['variant']->stock} قطع فقط)";
+                }
             }
 
             $order->load(['items.product', 'items.variant', 'district.governorate']);
@@ -157,6 +170,10 @@ class OrderController extends Controller
                     }
 
                     $message .= "\n[🔗 عرض الطلب في لوحة التحكم](" . route('admin.orders.show', $order->id) . ")";
+
+                    if (!empty($lowStockWarnings)) {
+                        $message .= "\n\n⚠️ *تنبيه نفاذ مخزون مسبق:*\n" . implode("\n", $lowStockWarnings);
+                    }
 
                     \Illuminate\Support\Facades\Http::timeout(5)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                         'chat_id'    => $chatId,
