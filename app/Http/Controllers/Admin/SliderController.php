@@ -27,7 +27,7 @@ class SliderController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'image'       => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
+            'image'       => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
             'title'       => ['nullable', 'string', 'max:200'],
             'link_type'   => ['nullable', 'in:category,product,external'],
             'category_id' => ['nullable', 'exists:categories,id'],
@@ -52,7 +52,7 @@ class SliderController extends Controller
     public function update(Request $request, Slider $slider)
     {
         $data = $request->validate([
-            'image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
+            'image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
             'title'       => ['nullable', 'string', 'max:200'],
             'link_type'   => ['nullable', 'in:category,product,external'],
             'category_id' => ['nullable', 'exists:categories,id'],
