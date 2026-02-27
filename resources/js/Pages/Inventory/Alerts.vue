@@ -143,6 +143,6 @@ const props = defineProps({
 const search = ref(props.filters.search ?? '');
 
 const doSearch = debounce(() => {
-  router.get(route('inventory.alerts'), { search: search.value }, { preserveState: true, replace: true });
+  router.get(route('admin.inventory.alerts'), { search: search.value }, { preserveState: true, replace: true });
 }, 500);
 </script>
