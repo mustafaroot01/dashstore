@@ -153,11 +153,11 @@ class InventoryController extends Controller
                 'id' => $v->id,
                 'product_id' => $v->product_id,
                 'product_name' => $v->product->name,
+                'sku' => $v->product->sku,
                 'category_name' => $v->product->category?->name ?? '—',
                 'color' => $v->color,
                 'size' => $v->size,
                 'stock' => $v->stock,
-                'image' => $v->product->first_image_url,
             ];
         });
 
@@ -166,5 +166,71 @@ class InventoryController extends Controller
             'filters' => ['search' => $search],
             'lowStockThreshold' => $lowStockThreshold,
         ]);
+    }
+
+    public function exportAlerts(Request $request)
+    {
+        $lowStockThreshold = (int) \App\Models\Setting::get('low_stock_threshold', 3);
+        $search = $request->query('search');
+
+        $query = \App\Models\ProductVariant::with('product.category')
+            ->whereHas('product', function($q) use ($search) {
+                $q->where('is_active', true);
+                if ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                }
+            })
+            ->where('stock', '<=', $lowStockThreshold)
+            ->orderBy('stock', 'asc')
+            ->orderBy('product_id');
+
+        $fileName = "low_stock_alerts_" . Carbon::now()->format('Y_m_d_His') . ".csv";
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function () use ($query) {
+            $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM for Excel to read Arabic properly
+            fputs($file, "\xEF\xBB\xBF");
+            
+            // Header Row
+            fputcsv($file, [
+                '#',
+                'القسم',
+                'كود المنتج (SKU)',
+                'اسم المنتج',
+                'اللون',
+                'القياس',
+                'المتتبقي'
+            ]);
+
+            $sequence = 1;
+
+            // Chunking for handling 10,000+ items without memory limit
+            $query->chunk(500, function ($variants) use ($file, &$sequence) {
+                foreach ($variants as $v) {
+                    fputcsv($file, [
+                        $sequence++,
+                        $v->product->category?->name ?? '—',
+                        "\t" . ($v->product->sku ?? '—'), // Force text in Excel
+                        $v->product->name,
+                        $v->color ?? '—',
+                        $v->size ?? '—',
+                        $v->stock
+                    ]);
+                }
+            });
+
+            fclose($file);
+        };
+
+        return new StreamedResponse($callback, 200, $headers);
     }
 }
