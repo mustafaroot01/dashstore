@@ -110,6 +110,7 @@ Route::prefix('panel')->name('admin.')->group(function () {
         // Inventory & Reports
         Route::middleware('admin.can:manage_inventory')->group(function () {
             Route::get('inventory', [Admin\InventoryController::class, 'index'])->name('inventory.index');
+            Route::get('inventory/alerts', [Admin\InventoryController::class, 'alerts'])->name('inventory.alerts');
             Route::get('inventory/export', [Admin\InventoryController::class, 'export'])->name('inventory.export');
         });
 

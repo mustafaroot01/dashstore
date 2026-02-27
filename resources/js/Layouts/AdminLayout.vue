@@ -69,6 +69,13 @@
         </div>
         
         <SidebarLink v-if="hasPermission('manage_inventory')" :href="route('admin.inventory.index')" icon="document-text" label="الجرد والتقارير" />
+        <SidebarLink 
+          v-if="hasPermission('manage_inventory')" 
+          :href="route('admin.inventory.alerts')" 
+          icon="inventory-alerts" 
+          label="تنبيهات المخزون" 
+          :badge="$page.props.app_settings?.low_stock_count > 0 ? $page.props.app_settings.low_stock_count : null"
+        />
         <SidebarLink v-if="hasPermission('manage_settings')" :href="route('admin.activity-log.index')" icon="log" label="سجل النشاطات" />
         <SidebarLink v-if="hasPermission('manage_settings')" :href="route('admin.error-log.index')" icon="shield-exclamation" label="سجلات الأخطاء" />
         <SidebarLink v-if="hasPermission('manage_settings')" :href="route('admin.api-docs.index')" icon="code-bracket" label="الواجهة البرمجية (API)" />

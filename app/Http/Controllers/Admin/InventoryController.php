@@ -131,4 +131,39 @@ class InventoryController extends Controller
 
         return new StreamedResponse($callback, 200, $headers);
     }
+    public function alerts(Request $request): Response
+    {
+        $lowStockThreshold = (int) \App\Models\Setting::get('low_stock_threshold', 3);
+        $search = $request->query('search');
+
+        $query = \App\Models\ProductVariant::with('product.category')
+            ->whereHas('product', function($q) use ($search) {
+                $q->where('is_active', true);
+                if ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                }
+            })
+            ->where('stock', '<=', $lowStockThreshold)
+            ->orderBy('stock', 'asc')
+            ->orderBy('product_id');
+
+        $alerts = $query->paginate(50)->withQueryString()->through(function($v) {
+            return [
+                'id' => $v->id,
+                'product_id' => $v->product_id,
+                'product_name' => $v->product->name,
+                'category_name' => $v->product->category?->name ?? '—',
+                'color' => $v->color,
+                'size' => $v->size,
+                'stock' => $v->stock,
+                'image' => $v->product->first_image_url,
+            ];
+        });
+
+        return Inertia::render('Inventory/Alerts', [
+            'alerts' => $alerts,
+            'filters' => ['search' => $search],
+            'lowStockThreshold' => $lowStockThreshold,
+        ]);
+    }
 }

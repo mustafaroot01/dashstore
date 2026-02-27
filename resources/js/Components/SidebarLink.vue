@@ -56,7 +56,16 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
     </svg>
 
-    <span>{{ label }}</span>
+    <svg v-else-if="icon === 'inventory-alerts'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+
+    <div class="flex-1 flex items-center justify-between gap-2 overflow-hidden">
+      <span class="truncate">{{ label }}</span>
+      <span v-if="badge" class="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold min-w-[18px] text-center shrink-0">
+        {{ badge }}
+      </span>
+    </div>
   </Link>
 </template>
 
@@ -64,7 +73,16 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
-const props  = defineProps({ href: String, icon: String, label: String });
+const props  = defineProps({ 
+  href: String, 
+  icon: String, 
+  label: String,
+  badge: [String, Number] 
+});
 const page   = usePage();
-const isActive = computed(() => page.url.startsWith(new URL(props.href, window.location.origin).pathname));
+const isActive = computed(() => {
+  const currentPath = page.url.split('?')[0];
+  const targetPath = new URL(props.href, window.location.origin).pathname;
+  return currentPath.startsWith(targetPath);
+});
 </script>

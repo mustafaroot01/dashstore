@@ -57,6 +57,9 @@ class HandleInertiaRequests extends Middleware
             'app_settings' => [
                 'dashboard_name' => \App\Models\Setting::get('dashboard_name', 'أمواج ديالى'),
                 'dashboard_logo' => \App\Models\Setting::get('dashboard_logo'),
+                'low_stock_count' => $admin ? \App\Models\ProductVariant::whereHas('product', fn($q) => $q->where('is_active', true))
+                    ->where('stock', '<=', (int) \App\Models\Setting::get('low_stock_threshold', 3))
+                    ->count() : 0,
             ],
         ];
     }

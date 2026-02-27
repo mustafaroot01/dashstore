@@ -114,7 +114,10 @@
             </span>
             تنبيهات المخزون
           </h3>
-          <span v-if="lowStockVariants.length" class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded-full">{{ lowStockVariants.length }} تنبيه</span>
+          <div class="flex items-center gap-2">
+            <span v-if="lowStockVariants.length" class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded-full">{{ lowStockVariants.length }} تنبيه</span>
+            <Link v-if="lowStockVariants.length > 0" :href="route('admin.inventory.alerts')" class="text-xs font-medium text-primary-600 hover:underline">عرض الكل</Link>
+          </div>
         </div>
         <div class="space-y-3">
           <div v-for="v in lowStockVariants" :key="v.id" class="flex items-center justify-between p-3 bg-red-50/50 hover:bg-red-50 transition rounded-lg border border-red-100">

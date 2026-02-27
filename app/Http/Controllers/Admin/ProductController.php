@@ -83,6 +83,43 @@ class ProductController extends Controller
 
         $this->handleImages($product, $request);
 
+        // --- Low Stock Notification Logic ---
+        $lowStockWarnings = [];
+        $lowStockThreshold = (int) \App\Models\Setting::get('low_stock_threshold', 3);
+        
+        foreach ($product->variants as $variant) {
+            if ($variant->stock <= 0) {
+                $colorSize = collect([$variant->color, $variant->size])->filter()->implode(' - ');
+                $variantSuffix = $colorSize ? " ({$colorSize})" : "";
+                $lowStockWarnings[] = "❌ {$product->name}{$variantSuffix} (تم الإضافة برصيد صفر!)";
+            } elseif ($variant->stock <= $lowStockThreshold) {
+                $colorSize = collect([$variant->color, $variant->size])->filter()->implode(' - ');
+                $variantSuffix = $colorSize ? " ({$colorSize})" : "";
+                $lowStockWarnings[] = "🔸 {$product->name}{$variantSuffix} (رصيد أولي قليل: {$variant->stock} قطع)";
+            }
+        }
+
+        if (!empty($lowStockWarnings)) {
+            $botToken = \App\Models\Setting::get('telegram_bot_token');
+            $chatId   = \App\Models\Setting::get('telegram_chat_id');
+            if ($botToken && $chatId) {
+                $dashboardName = \App\Models\Setting::get('dashboard_name', 'أمواج ديالى');
+                $message = "⚠️ *تنبيه من لوحة تحكم {$dashboardName}*\nتم إضافة منتج جديد برصيد منخفض:\n\n";
+                $message .= implode("\n", $lowStockWarnings);
+                
+                try {
+                    \Illuminate\Support\Facades\Http::timeout(5)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                        'chat_id'    => $chatId,
+                        'text'       => $message,
+                        'parse_mode' => 'Markdown',
+                    ]);
+                } catch (\Exception $e) {
+                    // Ignore telegram failures
+                }
+            }
+        }
+        // --- End Notification Logic ---
+
         return redirect()->route('admin.products.index')
             ->with('success', 'تم إضافة المنتج بنجاح');
     }
@@ -147,6 +184,43 @@ class ProductController extends Controller
             ]);
             $incomingIds[] = $newVariant->id;
         }
+
+        // --- Low Stock Notification Logic ---
+        $lowStockWarnings = [];
+        $lowStockThreshold = (int) \App\Models\Setting::get('low_stock_threshold', 3);
+        
+        foreach ($product->variants as $variant) {
+            if ($variant->stock <= 0) {
+                $colorSize = collect([$variant->color, $variant->size])->filter()->implode(' - ');
+                $variantSuffix = $colorSize ? " ({$colorSize})" : "";
+                $lowStockWarnings[] = "❌ {$product->name}{$variantSuffix} (نفذت الكمية تماماً!)";
+            } elseif ($variant->stock <= $lowStockThreshold) {
+                $colorSize = collect([$variant->color, $variant->size])->filter()->implode(' - ');
+                $variantSuffix = $colorSize ? " ({$colorSize})" : "";
+                $lowStockWarnings[] = "🔸 {$product->name}{$variantSuffix} (متبقي {$variant->stock} قطع فقط)";
+            }
+        }
+
+        if (!empty($lowStockWarnings)) {
+            $botToken = \App\Models\Setting::get('telegram_bot_token');
+            $chatId   = \App\Models\Setting::get('telegram_chat_id');
+            if ($botToken && $chatId) {
+                $dashboardName = \App\Models\Setting::get('dashboard_name', 'أمواج ديالى');
+                $message = "⚠️ *تنبيه من لوحة تحكم {$dashboardName}*\nتم تعديل مخزون المنتج واكتشاف نقص:\n\n";
+                $message .= implode("\n", $lowStockWarnings);
+                
+                try {
+                    \Illuminate\Support\Facades\Http::timeout(5)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                        'chat_id'    => $chatId,
+                        'text'       => $message,
+                        'parse_mode' => 'Markdown',
+                    ]);
+                } catch (\Exception $e) {
+                    // Ignore telegram failures on product update
+                }
+            }
+        }
+        // --- End Notification Logic ---
 
         // Delete removed variants
         $product->variants()->whereNotIn('id', $incomingIds)->delete();
