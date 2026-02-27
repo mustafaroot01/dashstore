@@ -52,7 +52,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'تم تسجيل الدخول بنجاح',
-            'user'    => $user,
+            'user'    => $user->load('governorate', 'district'),
             'token'   => $token,
         ]);
     }
@@ -60,19 +60,25 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'phone'      => ['required', 'unique:users,phone'],
-            'password'   => ['required', 'string', 'min:6'],
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name'  => ['required', 'string', 'max:100'],
-            'gender'     => ['required', 'in:male,female'],
-            'address'    => ['required', 'string'],
+            'phone'          => ['required', 'unique:users,phone'],
+            'password'       => ['required', 'string', 'min:6'],
+            'first_name'     => ['required', 'string', 'max:100'],
+            'last_name'      => ['required', 'string', 'max:100'],
+            'gender'         => ['required', 'in:male,female'],
+            'governorate_id' => ['required', 'exists:governorates,id'],
+            'district_id'    => ['nullable', 'exists:districts,id'],
+            'address'        => ['nullable', 'string'],
         ]);
 
         $data['password'] = Hash::make($data['password']);
         $user  = User::create($data);
         $token = $user->createToken('api')->plainTextToken;
 
-        return response()->json(['success' => true, 'user' => $user, 'token' => $token], 201);
+        return response()->json([
+            'success' => true, 
+            'user'    => $user->load('governorate', 'district'), 
+            'token'   => $token
+        ], 201);
     }
 
     public function forgotPassword(Request $request)

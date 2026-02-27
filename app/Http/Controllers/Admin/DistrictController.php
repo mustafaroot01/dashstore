@@ -12,14 +12,22 @@ class DistrictController extends Controller
     public function index()
     {
         return Inertia::render('Districts/Index', [
-            'districts' => District::withCount('orders')->latest()->get(),
+            'governorates' => \App\Models\Governorate::with(['districts' => function ($q) {
+                $q->withCount('orders');
+            }])->get(),
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate(['name' => ['required', 'string', 'max:100', 'unique:districts']]);
-        District::create(['name' => $request->name]);
+        $request->validate([
+            'name' => ['required', 'string', 'max:100', 'unique:districts'],
+            'governorate_id' => ['required', 'exists:governorates,id']
+        ]);
+        District::create([
+            'name' => $request->name,
+            'governorate_id' => $request->governorate_id
+        ]);
         return back()->with('success', 'تم إضافة القضاء');
     }
 

@@ -10,7 +10,7 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category_id', 'name', 'description', 'size',
+        'sku', 'category_id', 'subcategory_id', 'name', 'description',
         'price', 'sale_price', 'is_on_sale',
         'cost_price', 'is_active', 'is_available',
     ];
@@ -57,10 +57,28 @@ class Product extends Model
         return $this->effective_price - (float) $this->cost_price;
     }
 
+    /**
+     * إجمالي المخزون من كل المتغيرات
+     */
+    public function getTotalStockAttribute(): int
+    {
+        return $this->variants->sum('stock');
+    }
+
     // ── Relationships ────────────────────────
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function subcategory()
+    {
+        return $this->belongsTo(Subcategory::class);
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
     }
 
     public function images()

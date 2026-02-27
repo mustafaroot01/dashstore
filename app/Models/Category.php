@@ -11,6 +11,8 @@ class Category extends Model
 
     protected $fillable = ['name', 'image', 'is_active'];
 
+    protected $appends = ['image_url'];
+
     protected function casts(): array
     {
         return ['is_active' => 'boolean'];
@@ -26,6 +28,11 @@ class Category extends Model
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function subcategories()
+    {
+        return $this->hasMany(Subcategory::class);
     }
 
     // ── Accessors ───────────────────────────

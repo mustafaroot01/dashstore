@@ -8,6 +8,8 @@ class Slider extends Model
 {
     protected $fillable = ['image', 'title', 'link', 'link_type', 'category_id', 'product_id', 'order', 'is_active'];
 
+    protected $appends = ['image_url'];
+
     protected function casts(): array
     {
         return ['is_active' => 'boolean'];

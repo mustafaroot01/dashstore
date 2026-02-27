@@ -11,28 +11,41 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
+use App\Traits\HandlesImageUploads;
+
 class ProductController extends Controller
 {
+    use HandlesImageUploads;
     public function index(Request $request): Response
     {
-        $query = Product::with(['category', 'firstImage'])
-            ->when($request->search, fn ($q) => $q->where('name', 'like', "%{$request->search}%"))
-            ->when($request->category_id, fn ($q) => $q->where('category_id', $request->category_id));
+        $query = Product::with(['category', 'subcategory', 'firstImage'])
+            ->when($request->search, function ($q) use ($request) {
+                $q->where('name', 'like', "%{$request->search}%")
+                  ->orWhere('sku', 'like', "%{$request->search}%");
+            })
+            ->when($request->category_id, fn ($q) => $q->where('category_id', $request->category_id))
+            ->when($request->subcategory_id, fn ($q) => $q->where('subcategory_id', $request->subcategory_id))
+            ->when($request->availability === 'out', fn ($q) => $q->where('is_available', false))
+            ->when($request->availability === 'in', fn ($q) => $q->where('is_available', true));
 
         $products   = $query->latest()->paginate(50)->withQueryString();
-        $categories = Category::active()->get(['id', 'name']);
+        $categories = Category::with('subcategories')->active()->get(['id', 'name']);
+
+        // Count out of stock
+        $outOfStockCount = Product::where('is_available', false)->where('is_active', true)->count();
 
         return Inertia::render('Products/Index', [
-            'products'   => $products,
-            'categories' => $categories,
-            'filters'    => $request->only(['search', 'category_id']),
+            'products'        => $products,
+            'categories'      => $categories,
+            'filters'         => $request->only(['search', 'category_id', 'subcategory_id', 'availability']),
+            'outOfStockCount' => $outOfStockCount,
         ]);
     }
 
     public function create(): Response
     {
         return Inertia::render('Products/Form', [
-            'categories' => Category::active()->get(['id', 'name']),
+            'categories' => Category::with('subcategories')->active()->get(['id', 'name']),
         ]);
     }
 
@@ -40,20 +53,34 @@ class ProductController extends Controller
     {
         $data = $request->validate([
             'category_id'  => ['required', 'exists:categories,id'],
+            'subcategory_id' => ['nullable', 'exists:subcategories,id'],
             'name'         => ['required', 'string', 'max:150'],
+            'sku'          => ['nullable', 'string', 'max:100', 'unique:products,sku'],
             'description'  => ['required', 'string'],
-            'size'         => ['nullable', 'string', 'max:50'],
             'price'        => ['required', 'numeric', 'min:0'],
             'sale_price'   => ['nullable', 'numeric', 'min:0'],
             'is_on_sale'   => ['boolean'],
             'cost_price'   => ['required', 'numeric', 'min:0'],
             'is_active'    => ['boolean'],
             'is_available' => ['boolean'],
+            'variants'     => ['required', 'array', 'min:1'],
+            'variants.*.color' => ['nullable', 'string', 'max:50'],
+            'variants.*.size'  => ['nullable', 'string', 'max:50'],
+            'variants.*.stock' => ['required', 'integer', 'min:0'],
             'images'       => ['nullable', 'array', 'max:5'],
             'images.*'     => ['image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
         ]);
 
         $product = Product::create($data);
+
+        foreach ($data['variants'] as $v) {
+            $product->variants()->create([
+                'color' => $v['color'] ?? null,
+                'size'  => $v['size'] ?? null,
+                'stock' => $v['stock'],
+            ]);
+        }
+
         $this->handleImages($product, $request);
 
         return redirect()->route('admin.products.index')
@@ -62,11 +89,11 @@ class ProductController extends Controller
 
     public function edit(Product $product): Response
     {
-        $product->load('images', 'category');
+        $product->load('images', 'category', 'variants', 'subcategory');
 
         return Inertia::render('Products/Form', [
             'product'    => $product,
-            'categories' => Category::active()->get(['id', 'name']),
+            'categories' => Category::with('subcategories')->active()->get(['id', 'name']),
         ]);
     }
 
@@ -74,15 +101,21 @@ class ProductController extends Controller
     {
         $data = $request->validate([
             'category_id'  => ['required', 'exists:categories,id'],
+            'subcategory_id' => ['nullable', 'exists:subcategories,id'],
             'name'         => ['required', 'string', 'max:150'],
+            'sku'          => ['nullable', 'string', 'max:100', 'unique:products,sku,' . $product->id],
             'description'  => ['required', 'string'],
-            'size'         => ['nullable', 'string', 'max:50'],
             'price'        => ['required', 'numeric', 'min:0'],
             'sale_price'   => ['nullable', 'numeric', 'min:0'],
             'is_on_sale'   => ['boolean'],
             'cost_price'   => ['required', 'numeric', 'min:0'],
             'is_active'    => ['boolean'],
             'is_available' => ['boolean'],
+            'variants'     => ['required', 'array', 'min:1'],
+            'variants.*.id'    => ['nullable', 'integer'],
+            'variants.*.color' => ['nullable', 'string', 'max:50'],
+            'variants.*.size'  => ['nullable', 'string', 'max:50'],
+            'variants.*.stock' => ['required', 'integer', 'min:0'],
             'images'       => ['nullable', 'array'],
             'images.*'     => ['image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
             'deleted_images' => ['nullable', 'array'],
@@ -90,6 +123,33 @@ class ProductController extends Controller
         ]);
 
         $product->update($data);
+
+        // Sync Variants
+        $incomingIds = [];
+        foreach ($data['variants'] as $v) {
+            if (isset($v['id'])) {
+                $variant = $product->variants()->find($v['id']);
+                if ($variant) {
+                    $variant->update([
+                        'color' => $v['color'] ?? null,
+                        'size'  => $v['size'] ?? null,
+                        'stock' => $v['stock'],
+                    ]);
+                    $incomingIds[] = $variant->id;
+                    continue;
+                }
+            }
+            // Create new if no ID or ID not found
+            $newVariant = $product->variants()->create([
+                'color' => $v['color'] ?? null,
+                'size'  => $v['size'] ?? null,
+                'stock' => $v['stock'],
+            ]);
+            $incomingIds[] = $newVariant->id;
+        }
+
+        // Delete removed variants
+        $product->variants()->whereNotIn('id', $incomingIds)->delete();
 
         // Delete removed images
         if (! empty($data['deleted_images'])) {
@@ -150,7 +210,7 @@ class ProductController extends Controller
 
         $order = $existing;
         foreach (array_slice($request->file('images'), 0, $allowed) as $file) {
-            $path = $file->store("products/{$product->id}", 'public');
+            $path = $this->optimizeAndStore($file, "products/{$product->id}");
             ProductImage::create([
                 'product_id' => $product->id,
                 'image_path' => $path,

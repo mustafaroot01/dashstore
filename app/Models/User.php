@@ -14,6 +14,7 @@ class User extends Authenticatable
     protected $fillable = [
         'first_name', 'last_name', 'phone',
         'gender', 'address', 'password', 'is_active',
+        'governorate_id', 'district_id',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -39,6 +40,16 @@ class User extends Authenticatable
     }
 
     // ── Relationships ────────────────────────
+    public function governorate()
+    {
+        return $this->belongsTo(Governorate::class);
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
+
     public function orders()
     {
         return $this->hasMany(Order::class);

@@ -10,8 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
+use App\Traits\HandlesImageUploads;
+
 class SliderController extends Controller
 {
+    use HandlesImageUploads;
     public function index()
     {
         return Inertia::render('Sliders/Index', [
@@ -32,7 +35,7 @@ class SliderController extends Controller
             'link'        => ['nullable', 'string', 'max:500'],
         ]);
 
-        $data['image'] = $request->file('image')->store('sliders', 'public');
+        $data['image'] = $this->optimizeAndStore($request->file('image'), 'sliders');
         $data['order'] = Slider::max('order') + 1;
 
         // Clear irrelevant fields
@@ -58,7 +61,7 @@ class SliderController extends Controller
 
         if ($request->hasFile('image')) {
             Storage::disk('public')->delete($slider->image);
-            $data['image'] = $request->file('image')->store('sliders', 'public');
+            $data['image'] = $this->optimizeAndStore($request->file('image'), 'sliders');
         } else {
             unset($data['image']);
         }

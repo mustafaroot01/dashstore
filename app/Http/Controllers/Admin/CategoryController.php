@@ -8,11 +8,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
+use App\Traits\HandlesImageUploads;
+
 class CategoryController extends Controller
 {
+    use HandlesImageUploads;
     public function index(Request $request)
     {
         $categories = Category::withCount('products')
+            ->with(['subcategories' => function($q) {
+                $q->withCount('products')->latest();
+            }])
             ->when($request->search, fn ($q) => $q->where('name', 'like', "%{$request->search}%"))
             ->latest()
             ->paginate(50)
@@ -34,7 +40,7 @@ class CategoryController extends Controller
             'image.required' => 'صورة القسم مطلوبة',
         ]);
 
-        $data['image'] = $request->file('image')->store('categories', 'public');
+        $data['image'] = $this->optimizeAndStore($request->file('image'), 'categories');
 
         Category::create($data);
 
@@ -50,7 +56,7 @@ class CategoryController extends Controller
 
         if ($request->hasFile('image')) {
             Storage::disk('public')->delete($category->image);
-            $data['image'] = $request->file('image')->store('categories', 'public');
+            $data['image'] = $this->optimizeAndStore($request->file('image'), 'categories');
         }
 
         $category->update($data);

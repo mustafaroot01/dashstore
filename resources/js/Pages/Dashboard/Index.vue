@@ -46,6 +46,16 @@
         color="bg-orange-500"
         :href="route('admin.users.index')"
       />
+      <!-- Out of Stock -->
+      <StatCard
+        v-if="hasPermission('manage_products') && outOfStockProducts > 0"
+        label="منتجات نفذت"
+        :value="outOfStockProducts.toLocaleString('ar')"
+        sub="تحتاج متابعة"
+        icon="warning"
+        color="bg-amber-500"
+        :href="route('admin.products.index', { availability: 'out' })"
+      />
     </div>
 
     <!-- ═══ Status Cards ═════════════════════════════════════ -->
@@ -165,6 +175,7 @@ const props = defineProps({
   statusCounts: Object, chartData: Object, topProducts: Array,
   topDistricts: Array, latestOrders: Array, period: String,
   statuses: Object,
+  outOfStockProducts: { type: Number, default: 0 },
 });
 
 const periods = [

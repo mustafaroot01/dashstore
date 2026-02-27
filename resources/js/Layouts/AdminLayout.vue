@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex bg-slate-50">
+  <div class="h-screen overflow-hidden flex bg-slate-50">
 
     <!-- Mobile Overlay -->
     <div v-show="sidebarOpen" @click="sidebarOpen = false" 
@@ -11,13 +11,18 @@
       <!-- Logo -->
       <div class="flex items-center justify-between px-6 py-5 border-b border-slate-700/50">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-5 h-5">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15H9V8h2v9zm4 0h-2V8h2v9z"/>
-            </svg>
+          <div class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shrink-0">
+            <template v-if="$page.props.app_settings?.dashboard_logo">
+              <img :src="`/storage/${$page.props.app_settings.dashboard_logo}`" class="w-full h-full object-cover bg-white" />
+            </template>
+            <template v-else>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-5 h-5">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15H9V8h2v9zm4 0h-2V8h2v9z"/>
+              </svg>
+            </template>
           </div>
           <div>
-            <p class="text-white font-bold text-sm">أمواج ديالى</p>
+            <p class="text-white font-bold text-sm">{{ $page.props.app_settings?.dashboard_name || 'أمواج ديالى' }}</p>
             <p class="text-slate-400 text-xs">لوحة التحكم</p>
           </div>
         </div>
@@ -30,15 +35,16 @@
 
       <!-- Navigation -->
       <!-- Removed flex-1 so it does not force the logout button to the absolute bottom if nav is short -->
-      <nav class="py-4 space-y-0.5 overflow-y-auto mb-auto">
-        <div class="px-3 mb-2">
-          <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider px-2 mb-1">القائمة</p>
+      <nav class="sidebar-nav py-4 space-y-1 overflow-y-auto mb-auto">
+        <div class="px-4 mb-2">
+          <p class="text-slate-500 text-[11px] font-bold uppercase tracking-widest mb-1">القائمة الرئيسية</p>
         </div>
 
         <SidebarLink :href="route('admin.dashboard')" icon="home" label="الرئيسية" />
         <SidebarLink v-if="hasPermission('manage_orders')" :href="route('admin.orders.index')" icon="orders" label="الطلبات" />
         <SidebarLink v-if="hasPermission('manage_products')" :href="route('admin.products.index')" icon="products" label="المنتجات" />
         <SidebarLink v-if="hasPermission('manage_products')" :href="route('admin.categories.index')" icon="categories" label="الأقسام" />
+        <SidebarLink v-if="hasPermission('manage_settings')" :href="route('admin.governorates.index')" icon="map" label="المحافظات" />
         <SidebarLink v-if="hasPermission('manage_settings')" :href="route('admin.districts.index')" icon="map" label="الأقضية" />
         <SidebarLink v-if="hasPermission('manage_users')" :href="route('admin.users.index')" icon="users" label="الزبائن" />
         <SidebarLink v-if="hasPermission('manage_content')" :href="route('admin.sliders.index')" icon="sliders" label="السلايدات" />
@@ -94,7 +100,7 @@
     </aside>
 
     <!-- ═══ Main ════════════════════════════════════════════════ -->
-    <div class="flex-1 flex flex-col min-h-screen w-full lg:pr-[260px]">
+    <div class="flex-1 flex flex-col h-screen overflow-y-auto w-full lg:pr-[260px]">
       <!-- Topbar -->
       <header class="topbar sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
         <div class="flex items-center gap-3">

@@ -26,12 +26,23 @@ class SettingController extends Controller
             'invoice_address' => ['required', 'string', 'max:255'],
             'invoice_footer'  => ['nullable', 'string', 'max:500'],
             'invoice_logo'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'invoice_prefix'  => ['nullable', 'string', 'max:10'],
+            'dashboard_name'     => ['nullable', 'string', 'max:50'],
+            'dashboard_logo'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'telegram_bot_token' => ['nullable', 'string', 'max:255'],
+            'telegram_chat_id'   => ['nullable', 'string', 'max:255'],
         ]);
 
         if ($request->hasFile('invoice_logo')) {
-            $old = Setting::get('invoice_logo');
-            if ($old) Storage::disk('public')->delete($old);
+            $oldInvoice = Setting::get('invoice_logo');
+            if ($oldInvoice) Storage::disk('public')->delete($oldInvoice);
             $data['invoice_logo'] = $request->file('invoice_logo')->store('settings', 'public');
+        }
+
+        if ($request->hasFile('dashboard_logo')) {
+            $oldDash = Setting::get('dashboard_logo');
+            if ($oldDash) Storage::disk('public')->delete($oldDash);
+            $data['dashboard_logo'] = $request->file('dashboard_logo')->store('settings', 'public');
         }
 
         foreach ($data as $key => $value) {

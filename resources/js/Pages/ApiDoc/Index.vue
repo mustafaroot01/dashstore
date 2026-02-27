@@ -94,6 +94,8 @@
   "first_name": "أحمد",
   "last_name": "علي",
   "gender": "male",        // "male" | "female"
+  "governorate_id": 1,     // ID من الـ dropdown
+  "district_id": 2,        // ID بناءً على المحافظة
   "address": "حي المعلمين قرب مدرسة النور"
 }</pre>
               </div>
@@ -149,49 +151,78 @@
             </div>
           </Endpoint>
 
-          <Endpoint method="GET" path="/categories" desc="الأقسام المتوفرة.">
+          <Endpoint method="GET" path="/categories" desc="الأقسام المتوفرة مع أصنافها الفرعية.">
             <div class="mt-3">
               <p class="text-slate-600 text-sm mb-1 font-semibold">Response Array:</p>
               <pre class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs font-mono overflow-x-auto" dir="ltr">[
   {
     "id": 1,
     "name": "قناني مياه",
-    "image": "https://domain.com/storage/categories/xxx.jpg"
-  }
-]</pre>
-            </div>
-          </Endpoint>
-
-          <Endpoint method="GET" path="/products" desc="قائمة المنتجات (يدعم الفلترة).">
-            <p class="text-slate-500 text-xs mt-1">مثال لفلترة قسم معين: <code>/api/products?category_id=1</code></p>
-            <div class="mt-3">
-              <p class="text-slate-600 text-sm mb-1 font-semibold">Response Array:</p>
-              <pre class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs font-mono overflow-x-auto" dir="ltr">[
-  {
-    "id": 1,
-    "category_id": 1,
-    "name": "كارتون ماء 330 مل",
-    "description": "كارتون يحتوي على 20 قنينة",
-    "size": "20 x 330ml",
-    "price": "3500.00",
-    "sale_price": "3000.00",        // إذا كان مخفضاً
-    "is_on_sale": 1,                // 1 يعني أظهر sale_price
-    "is_available": 1,              // 1 = متوفر , 0 = نفذت الكمية
-    "images": [                     // Array of image objects
-      { "id": 1, "url": "https://domain.com/storage/products/1.jpg" }
+    "image": "https://domain.com/storage/categories/xxx.jpg",
+    "subcategories": [
+      {
+        "id": 1,
+        "name": "مياه معبأة",
+        "image": "https://domain.com/storage/subcategories/yyy.jpg"
+      }
     ]
   }
 ]</pre>
             </div>
           </Endpoint>
 
-          <Endpoint method="GET" path="/districts" desc="قائمة الأقضية (تُعرض كـ Dropdown عند إنشاء طلب).">
+          <Endpoint method="GET" path="/products" desc="قائمة المنتجات النشطة (يدعم البحث والفلترة). المنتجات النافذة تظهر مع is_available=false.">
+            <p class="text-slate-500 text-xs mt-1">مثال: <code>/api/products?search=ماك&amp;category_id=1&amp;subcategory_id=2</code></p>
             <div class="mt-3">
-              <p class="text-slate-600 text-sm mb-1 font-semibold">Response Array:</p>
+              <p class="text-slate-600 text-sm mb-1 font-semibold">Response Object (مع pagination):</p>
+              <pre class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs font-mono overflow-x-auto" dir="ltr">{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "category_id": 1,
+      "subcategory_id": 2,
+      "name": "كارتون ماء 330 مل",
+      "sku": "AW-50012",
+      "price": "3500.00",
+      "sale_price": "3000.00",
+      "is_on_sale": true,
+      "effective_price": 3000.0,    // السعر الفعلي (بعد الخصم أو بدونه)
+      "is_available": true,         // ⚠️ false = نفذت الكمية, يجب إظهار badge وتعطيل السلة
+      "total_stock": 45,            // ⚠️ مجموع المخزون من جميع المتغيرات — استخدمه كحد أقصى للكمية
+      "thumbnail": "https://domain.com/storage/products/xxx.jpg"
+    }
+  ],
+  "meta": { "current_page": 1, "last_page": 3, "total": 60 }
+}</pre>
+              <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                <strong>⚠️ تعليمات حرجة للمطور:</strong>
+                <ul class="list-disc list-inside space-y-1 mt-1">
+                  <li>إذا <code>is_available === false</code>: أظهر badge "نفذ" وعطّل زر الإضافة للسلة</li>
+                  <li>استخدم <code>total_stock</code> كحد أقصى للكمية في السلة (لا تسمح بالتجاوز)</li>
+                  <li>في تفاصيل المنتج: استخدم <code>variants[i].stock</code> لكل متغير بشكل منفصل</li>
+                </ul>
+              </div>
+            </div>
+          </Endpoint>
+
+          <Endpoint method="GET" path="/districts" desc="سحب المحافظات والأقضية المرتبطة بها (لعرضها كقوائم منسدلة).">
+            <div class="mt-3">
+              <p class="text-slate-600 text-sm mb-1 font-semibold">Response Array (Governorates with their districts):</p>
               <pre class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs font-mono overflow-x-auto max-w-md" dir="ltr">[
-  { "id": 1, "name": "بعقوبة" },
-  { "id": 2, "name": "الخالص" },
-  { "id": 3, "name": "المقدادية" }
+  { 
+    "id": 1, 
+    "name": "ديالى",
+    "districts": [
+      { "id": 1, "name": "بعقوبة" },
+      { "id": 2, "name": "الخالص" }
+    ]
+  },
+  { 
+    "id": 2, 
+    "name": "بغداد",
+    "districts": [ ... ]
+  }
 ]</pre>
             </div>
           </Endpoint>
@@ -241,6 +272,8 @@
   "first_name": "أحمد",
   "last_name": "علي حسن",
   "gender": "male",
+  "governorate_id": 1,
+  "district_id": 2,
   "address": "حي المصطفى، قرب مدرسة النوارس"
 }</pre>
               </div>
@@ -248,18 +281,19 @@
                 <p class="text-slate-600 text-sm mb-1 font-semibold">Response:</p>
                 <pre class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs font-mono overflow-x-auto" dir="ltr">{
   "success": true,
-  "user": { ... updated user object ... }
+  "user": { "id": 1, "first_name": "أحمد", ... }
 }</pre>
               </div>
             </div>
           </Endpoint>
           
-          <Endpoint method="POST" path="/coupons/validate" desc="التحقق من صحة كود الخصم (كوبون) قبل استخدامه في الطلب.">
+          <Endpoint method="POST" path="/coupons/validate" desc="التحقق من صحة كود الخصم (كوبون) قبل استخدامه في الطلب. يجب إرسال subtotal للحساب الدقيق.">
             <div class="grid md:grid-cols-2 gap-4 mt-3">
               <div>
                 <p class="text-slate-600 text-sm mb-1 font-semibold">Request Body:</p>
                 <pre class="bg-slate-900 text-blue-300 p-3 rounded-lg text-xs font-mono overflow-x-auto" dir="ltr">{
-  "code": "AMWAJ10"
+  "code": "AMWAJ10",
+  "subtotal": 25000  // (مطلوب) المجموع قبل الخصم لحساب قيمة الخصم
 }</pre>
               </div>
               <div>
@@ -270,60 +304,88 @@
     "id": 1,
     "code": "AMWAJ10",
     "type": "percent", // "percent" | "fixed"
-    "value": "10.00"   // 10% خصم أو 10 آلاف عراقي خصم ثابت
+    "value": "10.00",
+    "discount": 2500   // القيمة الفعلية المخصومة بالدينار
   }
 }</pre>
               </div>
             </div>
           </Endpoint>
           
-          <Endpoint method="POST" path="/orders" desc="إرسال طلب شراء جديد.">
+          <Endpoint method="POST" path="/orders" desc="إرسال طلب شراء جديد (يتطلب Bearer Token). جميع المنتجات يجب أن تحتوي على product_variant_id.">
             <div class="grid md:grid-cols-2 gap-4 mt-3">
               <div>
                 <p class="text-slate-600 text-sm mb-1 font-semibold">Request Body:</p>
                 <pre class="bg-slate-900 text-amber-300 p-3 rounded-lg text-xs font-mono overflow-x-auto" dir="ltr">{
-  "district_id": 1,
+  "governorate_id": 1,    // (مطلوب) ID المحافظة
+  "district_id": 2,       // (اختياري) ID القضاء
   "delivery_point": "قرب مدرسة الأندلس",
   "phone": "07701234567",
-  "coupon_code": "AMWAJ10", // (اختياري) أرسله إذا تم التحقق منه مسبقاً
+  "coupon_id": 3,         // (اختياري) ID الكوبون بعد التحقق منه
   "notes": "الرجاء الاتصال قبل الوصول",
   "items": [
-    { "product_id": 5, "quantity": 2 },
-    { "product_id": 1, "quantity": 5 }
+    {
+      "product_id": 5,
+      "product_variant_id": 10, // (مطلوب)
+      "quantity": 2
+    }
   ]
 }</pre>
               </div>
               <div>
-                <p class="text-slate-600 text-sm mb-1 font-semibold">Response (Created):</p>
+                <p class="text-slate-600 text-sm mb-1 font-semibold">Response (201 Created):</p>
                 <pre class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs font-mono overflow-x-auto" dir="ltr">{
   "success": true,
-  "order": {
+  "message": "تم إنشاء الطلب بنجاح",
+  "data": {
     "id": 105,
-    "invoice_number": "AW-10005",
-    "status": "pending", // pending | received | preparing | delivering | delivered | rejected
-    "total_price": "25000.00",
-    "discount_amount": "2500.00",
-    ...
+    "invoice_number": "WEB-ABC123",
+    "status": "pending",
+    "status_label": "قيد الانتظار",
+    "total_price": "25000.00"
   }
 }</pre>
               </div>
             </div>
           </Endpoint>
 
-          <Endpoint method="GET" path="/orders" desc="قائمة طلبات المستخدم السابقة والحالية.">
+          <Endpoint method="GET" path="/orders" desc="قائمة طلبات المستخدم السابقة والحالية (مع pagination).">
             <div class="mt-3">
-              <p class="text-slate-600 text-sm mb-1 font-semibold">Response Array:</p>
-              <pre class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs font-mono overflow-x-auto" dir="ltr">[
-  {
-    "id": 105,
-    "invoice_number": "AW-10005",
-    "status": "pending", // pending | received | preparing | delivering | delivered | rejected
-    "total_price": "22500.00",
-    "created_at": "2026-02-25T14:30:00.000000Z",
-    "items_count": 2 
-  },
-  ...
-]</pre>
+              <p class="text-slate-600 text-sm mb-1 font-semibold">Response (200 OK):</p>
+              <pre class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs font-mono overflow-x-auto" dir="ltr">{
+  "success": true,
+  "data": [
+    {
+      "id": 105,
+      "invoice_number": "WEB-ABC123",
+      "status": "pending",
+      "status_label": "قيد الانتظار",
+      "total_price": "22500.00",
+      "discount_amount": "2500.00",
+      "delivery_point": "قرب مدرسة الأندلس",
+      "phone": "07701234567",
+      "governorate": "ديالى",
+      "district": "بعقوبة",
+      "created_at": "2026-02-25T14:30:00.000Z",
+      "items_count": 2,
+      "items": [
+        {
+          "id": 210,
+          "quantity": 2,
+          "price": "5000.00",
+          "name": "كارتون ماء 330 مل",
+          "thumbnail": "https://domain.com/storage/products/xxx.jpg",
+          "variant": "أحمر L" // null إذا لا يوجد متغير
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 3,
+    "total": 55
+  }
+}</pre>
             </div>
           </Endpoint>
 
@@ -334,7 +396,11 @@
   "id": 105,
   "invoice_number": "AW-10005",
   "status": "pending",           // pending | received | preparing | delivering | delivered | rejected
-  "district": { "id": 1, "name": "بعقوبة" },
+  "district": { 
+    "id": 1, 
+    "name": "بعقوبة", 
+    "governorate": { "id": 1, "name": "ديالى" }
+  },
   "delivery_point": "قرب مدرسة الأندلس",
   "phone": "07701234567",
   "total_price": "22500.00",     // السعر النهائي بعد الخصم
@@ -345,11 +411,12 @@
     {
       "id": 210,
       "product_id": 5,
+      "product_variant_id": 10,
       "quantity": 2,
       "price": "5000.00",        // السعر وقت الطلب
-      "product": { "name": "كارتون ماء...", "image_url": "..." }
-    },
-    ...
+      "product": { "name": "كارتون ماء...", "sku": "SKU-xyz", "image_url": "..." },
+      "variant": { "color": "أحمر", "size": "L" }
+    }
   ]
 }</pre>
             </div>

@@ -10,7 +10,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'invoice_number', 'user_id', 'district_id',
+        'invoice_number', 'user_id', 'governorate_id', 'district_id',
         'delivery_point', 'phone', 'coupon_id',
         'discount_amount', 'status', 'total_price', 'notes',
     ];
@@ -52,7 +52,8 @@ class Order extends Model
         static::creating(function (Order $order) {
             if (empty($order->invoice_number)) {
                 $last = static::max('id') ?? 0;
-                $order->invoice_number = 'AW-' . str_pad($last + 1, 5, '0', STR_PAD_LEFT);
+                $prefix = \App\Models\Setting::get('invoice_prefix', 'AW-');
+                $order->invoice_number = $prefix . str_pad($last + 1, 5, '0', STR_PAD_LEFT);
             }
         });
     }
@@ -69,6 +70,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function governorate()
+    {
+        return $this->belongsTo(Governorate::class);
     }
 
     public function district()

@@ -4,14 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class District extends Model
+class Governorate extends Model
 {
-    protected $fillable = ['governorate_id', 'name', 'is_active'];
-
-    public function governorate()
-    {
-        return $this->belongsTo(Governorate::class);
-    }
+    protected $fillable = ['name', 'is_active'];
 
     protected function casts(): array
     {
@@ -23,8 +18,8 @@ class District extends Model
         return $query->where('is_active', true);
     }
 
-    public function orders()
+    public function districts()
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(District::class);
     }
 }

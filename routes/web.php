@@ -11,8 +11,12 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// ── Auth (Guest only) ─────────────────────────────────────
 Route::prefix('panel')->name('admin.')->group(function () {
+
+    // Root redirect
+    Route::get('/', function () {
+        return redirect()->route('admin.dashboard');
+    });
 
     Route::middleware('guest:admin')->group(function () {
         Route::get('login', [Admin\AuthController::class, 'showLogin'])->name('login');
@@ -32,6 +36,7 @@ Route::prefix('panel')->name('admin.')->group(function () {
             Route::get('orders', [Admin\OrderController::class, 'index'])->name('orders.index');
             Route::get('orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
             Route::patch('orders/{order}/status', [Admin\OrderController::class, 'updateStatus'])->name('orders.status');
+            Route::put('orders/{order}', [Admin\OrderController::class, 'update'])->name('orders.update');
         });
 
         // Products & Categories
@@ -46,16 +51,22 @@ Route::prefix('panel')->name('admin.')->group(function () {
             Route::patch('products/{product}/toggle-availability', [Admin\ProductController::class, 'toggleAvailability'])->name('products.toggle-availability');
             Route::patch('products/{product}/toggle-active', [Admin\ProductController::class, 'toggleActive'])->name('products.toggle-active');
 
-            // Categories
-            Route::get('categories', [Admin\CategoryController::class, 'index'])->name('categories.index');
-            Route::post('categories', [Admin\CategoryController::class, 'store'])->name('categories.store');
-            Route::match(['POST','PUT'], 'categories/{category}', [Admin\CategoryController::class, 'update'])->name('categories.update');
-            Route::delete('categories/{category}', [Admin\CategoryController::class, 'destroy'])->name('categories.destroy');
-            Route::patch('categories/{category}/toggle-active', [Admin\CategoryController::class, 'toggleActive'])->name('categories.toggle-active');
+            // ── Categories & Subcategories ─────────
+            Route::resource('categories', Admin\CategoryController::class)->except(['create', 'show', 'edit']);
+            Route::post('categories/{category}/toggle-active', [Admin\CategoryController::class, 'toggleActive'])->name('categories.toggle-active');
+
+            // Subcategories
+            Route::resource('categories.subcategories', Admin\SubcategoryController::class)->except(['create', 'show', 'edit']);
+            Route::post('categories/{category}/subcategories/{subcategory}/toggle-active', [Admin\SubcategoryController::class, 'toggleActive'])->name('categories.subcategories.toggle-active');
         });
 
         // Settings & Districts
         Route::middleware('admin.can:manage_settings')->group(function () {
+            Route::get('governorates', [Admin\GovernorateController::class, 'index'])->name('governorates.index');
+            Route::post('governorates', [Admin\GovernorateController::class, 'store'])->name('governorates.store');
+            Route::delete('governorates/{governorate}', [Admin\GovernorateController::class, 'destroy'])->name('governorates.destroy');
+            Route::patch('governorates/{governorate}/toggle-active', [Admin\GovernorateController::class, 'toggleActive'])->name('governorates.toggle-active');
+
             Route::get('districts', [Admin\DistrictController::class, 'index'])->name('districts.index');
             Route::post('districts', [Admin\DistrictController::class, 'store'])->name('districts.store');
             Route::delete('districts/{district}', [Admin\DistrictController::class, 'destroy'])->name('districts.destroy');
@@ -124,5 +135,7 @@ Route::prefix('panel')->name('admin.')->group(function () {
     });
 });
 
-// Redirect root to panel
-Route::redirect('/', '/panel/dashboard');
+// ── Root Redirect to Admin Panel ─────────────────────────
+Route::redirect('/', '/panel');
+Route::redirect('/admin', '/panel');
+

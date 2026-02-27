@@ -37,7 +37,7 @@
               </td>
               <!-- Invoice -->
               <td>
-                <span class="font-mono font-bold text-primary-700 tracking-wide">
+                <span class="font-mono font-bold text-primary-700 tracking-wider bg-primary-50/50 px-2.5 py-1 rounded-md text-xs border border-primary-100/50">
                   {{ order.invoice_number }}
                 </span>
               </td>
@@ -46,7 +46,9 @@
                 {{ order.user?.first_name }} {{ order.user?.last_name }}
               </td>
               <!-- District -->
-              <td class="text-slate-500 text-sm">{{ order.district?.name }}</td>
+              <td class="text-slate-500 text-sm">
+                {{ order.district?.governorate?.name }} - {{ order.district?.name }}
+              </td>
               <!-- Amount -->
               <td class="font-semibold text-slate-800">{{ fmt(order.total_price) }}</td>
 
@@ -55,11 +57,13 @@
                 <div class="relative inline-block">
                   <!-- Badge -->
                   <button @click.stop="openDropdown = openDropdown === order.id ? null : order.id"
-                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all"
-                    :class="statuses[order.status]?.cls ?? 'bg-slate-100 text-slate-600 border-slate-200'">
-                    <span class="w-1.5 h-1.5 rounded-full" :class="statuses[order.status]?.dot"></span>
-                    {{ statuses[order.status]?.label ?? order.status }}
-                    <svg class="w-3 h-3 opacity-60" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    class="flex items-center justify-between min-w-[120px] gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:shadow-sm"
+                    :class="statuses[order.status]?.cls ?? 'bg-slate-100 text-slate-600 border-transparent'">
+                    <span class="flex items-center gap-1.5">
+                      <span class="w-1.5 h-1.5 rounded-full" :class="statuses[order.status]?.dot"></span>
+                      {{ statuses[order.status]?.label ?? order.status }}
+                    </span>
+                    <svg class="w-3 h-3 opacity-50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
                   </button>
@@ -128,12 +132,12 @@ const props = defineProps({ orders: Object, filters: Object });
 
 // Status definitions — used for the badge AND filter select
 const statuses = {
-  pending:    { label: 'قيد الانتظار',    cls: 'bg-amber-50 text-amber-700 border-amber-200',       dot: 'bg-amber-400',   text: 'text-amber-700' },
-  received:   { label: 'تم استلام الطلب', cls: 'bg-blue-50 text-blue-700 border-blue-200',          dot: 'bg-blue-400',    text: 'text-blue-700' },
-  preparing:  { label: 'جاري التجهيز',    cls: 'bg-violet-50 text-violet-700 border-violet-200',   dot: 'bg-violet-400',  text: 'text-violet-700' },
-  delivering: { label: 'جاري التوصيل',    cls: 'bg-cyan-50 text-cyan-700 border-cyan-200',          dot: 'bg-cyan-400',    text: 'text-cyan-700' },
-  delivered:  { label: 'تم التسليم',      cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-400', text: 'text-emerald-700' },
-  rejected:   { label: 'تم رفض الطلب',    cls: 'bg-rose-50 text-rose-700 border-rose-200',          dot: 'bg-rose-500',    text: 'text-rose-700' },
+  pending:    { label: 'قيد الانتظار',    cls: 'bg-amber-100/50 text-amber-700 border-transparent',       dot: 'bg-amber-500',   text: 'text-amber-700' },
+  received:   { label: 'تم استلام الطلب', cls: 'bg-blue-100/50 text-blue-700 border-transparent',          dot: 'bg-blue-500',    text: 'text-blue-700' },
+  preparing:  { label: 'جاري التجهيز',    cls: 'bg-violet-100/50 text-violet-700 border-transparent',   dot: 'bg-violet-500',  text: 'text-violet-700' },
+  delivering: { label: 'جاري التوصيل',    cls: 'bg-cyan-100/50 text-cyan-700 border-transparent',          dot: 'bg-cyan-500',    text: 'text-cyan-700' },
+  delivered:  { label: 'تم التسليم',      cls: 'bg-emerald-100/50 text-emerald-700 border-transparent', dot: 'bg-emerald-500', text: 'text-emerald-700' },
+  rejected:   { label: 'تم رفض الطلب',    cls: 'bg-red-100/50 text-red-700 border-transparent',          dot: 'bg-red-500',    text: 'text-red-700' },
 };
 
 const f = reactive({
