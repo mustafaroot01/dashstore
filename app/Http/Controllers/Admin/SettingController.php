@@ -53,4 +53,28 @@ class SettingController extends Controller
 
         return back()->with('success', 'تم حفظ الإعدادات');
     }
+
+    public function testTelegram(Request $request)
+    {
+        $request->validate([
+            'telegram_bot_token' => ['required', 'string'],
+            'telegram_chat_id'   => ['required', 'string'],
+        ]);
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(5)->post("https://api.telegram.org/bot{$request->telegram_bot_token}/sendMessage", [
+                'chat_id'    => $request->telegram_chat_id,
+                'text'       => "👋 *رسالة تجريبية من أمواج ديالى*\n\nإذا وصلتك هذه الرسالة، فهذا يعني أن ربط التلغرام جاهز ويعمل بنجاح لتبليغك بالطلبات الجديدة! ✅",
+                'parse_mode' => 'Markdown',
+            ]);
+
+            if ($response->successful()) {
+                return response()->json(['success' => true, 'message' => 'تم إرسال الرسالة بنجاح! تفقد التلغرام الخاص بك.']);
+            }
+
+            return response()->json(['success' => false, 'message' => 'فشل الإرسال: ' . $response->json('description', 'تأكد من المعرّف والتوكن.')]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'تعذر الاتصال بخوادم التلغرام.']);
+        }
+    }
 }

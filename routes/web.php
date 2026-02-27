@@ -74,6 +74,7 @@ Route::prefix('panel')->name('admin.')->group(function () {
 
             Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings.index');
             Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
+            Route::post('settings/telegram/test', [Admin\SettingController::class, 'testTelegram'])->name('settings.telegram.test');
         });
 
         // Users

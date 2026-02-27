@@ -126,7 +126,19 @@
               </div>
               <div class="form-group border-r-2 border-slate-200 pr-3">
                 <label class="form-label text-slate-700 font-medium tracking-wide">رقم المحادثة (Chat ID)</label>
-                <input v-model="form.telegram_chat_id" class="form-input bg-slate-50/50 hover:bg-white focus:bg-white transition" dir="ltr" placeholder="مثال: 123456789 (أو للگروب -123456)" />
+                <div class="flex gap-2">
+                  <input v-model="form.telegram_chat_id" class="form-input bg-slate-50/50 hover:bg-white focus:bg-white transition flex-1" dir="ltr" placeholder="مثال: 123456789 (أو للگروب -123456)" />
+                  <button type="button" @click="testTelegramMessage" :disabled="isTestingTelegram || !form.telegram_bot_token || !form.telegram_chat_id"
+                    class="btn-success text-xs px-3 py-2 whitespace-nowrap flex items-center justify-center gap-1.5 focus:ring-0">
+                    <svg v-if="isTestingTelegram" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                    <i v-else class="fas fa-paper-plane"></i>
+                    تجربة
+                  </button>
+                </div>
+                <!-- Test Result Message -->
+                <p v-if="testTelegramMessageText" class="mt-2 text-xs font-bold transition-all" :class="testTelegramSuccess ? 'text-emerald-600' : 'text-red-500'">
+                  {{ testTelegramMessageText }}
+                </p>
               </div>
             </div>
             
@@ -170,6 +182,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import axios from 'axios';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const props = defineProps({ settings: Object });
@@ -180,6 +193,33 @@ const isFetchingId = ref(false);
 const fetchMessage = ref('');
 const fetchSuccess = ref(false);
 const searchUsername = ref('');
+
+// Test message state
+const isTestingTelegram = ref(false);
+const testTelegramMessageText = ref('');
+const testTelegramSuccess = ref(false);
+
+async function testTelegramMessage() {
+  if (!form.telegram_bot_token || !form.telegram_chat_id) return;
+  
+  isTestingTelegram.value = true;
+  testTelegramMessageText.value = '';
+  
+  try {
+    const res = await axios.post(route('admin.settings.telegram.test'), {
+      telegram_bot_token: form.telegram_bot_token,
+      telegram_chat_id: form.telegram_chat_id,
+    });
+    
+    testTelegramSuccess.value = res.data.success;
+    testTelegramMessageText.value = res.data.message;
+  } catch (err) {
+    testTelegramSuccess.value = false;
+    testTelegramMessageText.value = err.response?.data?.message || 'تعذر الاتصال بالخادم.';
+  } finally {
+    isTestingTelegram.value = false;
+  }
+}
 
 const form = useForm({
   otp_channel:     props.settings.otp_channel ?? 'whatsapp',
