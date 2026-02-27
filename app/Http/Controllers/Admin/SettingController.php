@@ -29,6 +29,7 @@ class SettingController extends Controller
             'invoice_prefix'  => ['nullable', 'string', 'max:10'],
             'dashboard_name'     => ['nullable', 'string', 'max:50'],
             'dashboard_logo'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'low_stock_threshold'=> ['nullable', 'integer', 'min:0', 'max:100'],
             'telegram_bot_token' => ['nullable', 'string', 'max:255'],
             'telegram_chat_id'   => ['nullable', 'string', 'max:255'],
         ]);

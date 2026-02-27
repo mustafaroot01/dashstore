@@ -103,6 +103,64 @@
       </div>
     </div>
 
+    <!-- ═══ Operations & Alerts Row ════════════════════════════ -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      <!-- Low Stock Alerts -->
+      <div v-if="hasPermission('manage_products')" class="card">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600">
+               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </span>
+            تنبيهات المخزون
+          </h3>
+          <span v-if="lowStockVariants.length" class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded-full">{{ lowStockVariants.length }} تنبيه</span>
+        </div>
+        <div class="space-y-3">
+          <div v-for="v in lowStockVariants" :key="v.id" class="flex items-center justify-between p-3 bg-red-50/50 hover:bg-red-50 transition rounded-lg border border-red-100">
+            <div class="flex items-center gap-3">
+               <div>
+                  <Link :href="route('admin.products.edit', v.product_id)" class="text-sm font-bold text-slate-700 hover:text-primary-600 transition">{{ v.name }}</Link>
+                  <p class="text-xs text-slate-500 mt-0.5"><span v-if="v.color">لون: {{ v.color }}</span><span v-if="v.color && v.size"> | </span><span v-if="v.size">حجم: {{ v.size }}</span></p>
+               </div>
+            </div>
+            <div class="text-center px-3 py-1 bg-white rounded-md border border-red-100 shadow-sm">
+              <span class="block text-lg font-black leading-none" :class="v.stock === 0 ? 'text-red-600' : 'text-orange-500'">{{ v.stock }}</span>
+              <span class="block text-[10px] text-slate-500 font-medium mt-1">قطعة</span>
+            </div>
+          </div>
+          <p v-if="!lowStockVariants.length" class="text-center text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg py-4 border border-emerald-100">المخزون بوضع جيد ✅</p>
+        </div>
+      </div>
+
+      <!-- Top Districts -->
+      <div class="card">
+        <h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          <span class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          </span>
+          المدن الأكثر طلباً
+        </h3>
+        <div class="space-y-3">
+          <div v-for="(d, i) in topDistricts" :key="i"
+            class="flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+              {{ i + 1 }}
+            </span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-slate-700 truncate">{{ d.name }}</p>
+              <div class="h-1.5 bg-slate-100 rounded-full mt-1">
+                <div class="h-1.5 bg-indigo-500 rounded-full transition-all"
+                  :style="`width:${(d.total / maxDistQty * 100).toFixed(0)}%`"></div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">{{ d.total }} طلب</span>
+          </div>
+          <p v-if="!topDistricts.length" class="text-slate-400 text-sm text-center py-4">لا توجد بيانات</p>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══ Latest Orders ════════════════════════════════════ -->
     <div class="card">
       <div class="flex items-center justify-between mb-4">
@@ -176,6 +234,8 @@ const props = defineProps({
   topDistricts: Array, latestOrders: Array, period: String,
   statuses: Object,
   outOfStockProducts: { type: Number, default: 0 },
+  lowStockVariants: { type: Array, default: () => [] },
+  lowStockThreshold: { type: Number, default: 3 }
 });
 
 const periods = [
@@ -185,6 +245,7 @@ const periods = [
 ];
 
 const maxQty = computed(() => Math.max(...(props.topProducts.map(p => p.total_qty) ?? [1])));
+const maxDistQty = computed(() => Math.max(...(props.topDistricts.map(d => d.total) ?? [1]), 1));
 
 function formatMoney(val) {
   return Number(val ?? 0).toLocaleString('ar-IQ') + ' د.ع';

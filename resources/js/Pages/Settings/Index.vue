@@ -50,6 +50,20 @@
           </div>
         </div>
 
+        <!-- Store & Inventory Settings -->
+        <h3 class="font-bold text-slate-800 text-lg mb-4 mt-8">إعدادات المتجر والمخزون</h3>
+        <div class="card mb-4 border-t-4 border-t-amber-500 rounded-lg shadow-sm">
+          <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+              <div class="form-group border-r-2 border-slate-200 pr-3">
+                <label class="form-label text-slate-700 font-medium tracking-wide">رقم التنبيه بنفاذ المخزون (Low Stock Threshold)</label>
+                <input v-model.number="form.low_stock_threshold" type="number" min="0" class="form-input bg-slate-50/50 hover:bg-white focus:bg-white transition" placeholder="مثال: 3" />
+                <p class="text-xs text-slate-500 mt-1">سيتم إرسال تنبيه في التلغرام ولوحة التحكم إذا وصل مخزون أي منتج لهذا الرقم أو أقل.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Invoice Settings -->
         <h3 class="font-bold text-slate-800 text-lg mb-4 mt-8">إعدادات الفاتورة</h3>
         <div class="card mb-4 border-t-4 border-t-primary-500 rounded-lg shadow-sm">
@@ -231,6 +245,7 @@ const form = useForm({
   invoice_prefix:  props.settings.invoice_prefix ?? 'AW-',
   dashboard_name:      props.settings.dashboard_name ?? 'أمواج ديالى',
   dashboard_logo:      null,
+  low_stock_threshold: props.settings.low_stock_threshold !== undefined ? Number(props.settings.low_stock_threshold) : 3,
   telegram_bot_token: props.settings.telegram_bot_token ?? '',
   telegram_chat_id:   props.settings.telegram_chat_id ?? '',
 });

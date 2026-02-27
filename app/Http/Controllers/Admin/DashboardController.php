@@ -90,12 +90,29 @@ class DashboardController extends Controller
         // Out of stock products
         $outOfStockProducts = Product::where('is_available', false)->where('is_active', true)->count();
 
+        // Low stock variants
+        $lowStockThreshold = (int) \App\Models\Setting::get('low_stock_threshold', 3);
+        $lowStockVariants = \App\Models\ProductVariant::with('product')
+            ->whereHas('product', fn($q) => $q->where('is_active', true))
+            ->where('stock', '<=', $lowStockThreshold)
+            ->orderBy('stock', 'asc')
+            ->limit(10)
+            ->get()
+            ->map(fn($v) => [
+                'id' => $v->id,
+                'product_id' => $v->product_id,
+                'name' => $v->product->name,
+                'color' => $v->color,
+                'size' => $v->size,
+                'stock' => $v->stock,
+            ]);
+
         return Inertia::render('Dashboard/Index', compact(
             'totalOrders', 'totalRevenue', 'totalProfit',
             'totalUsers', 'newUsersToday', 'pendingOrders',
             'statusCounts', 'chartData', 'topProducts',
             'topDistricts', 'latestOrders', 'period', 'statuses',
-            'outOfStockProducts',
+            'outOfStockProducts', 'lowStockVariants', 'lowStockThreshold'
         ));
     }
 
