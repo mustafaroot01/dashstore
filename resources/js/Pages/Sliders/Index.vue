@@ -68,12 +68,14 @@
                 <div v-else class="py-4 text-slate-400 text-sm text-center">اضغط لاختيار صورة السلايدة</div>
                 <input ref="sImg" type="file" accept="image/*" class="hidden" @change="onImg" />
               </div>
+              <p v-if="form.errors.image" class="text-xs text-red-500 mt-1 font-medium">{{ form.errors.image }}</p>
             </div>
 
             <!-- Title -->
             <div class="form-group">
               <label class="form-label">العنوان (اختياري)</label>
               <input v-model="form.title" class="form-input" placeholder="عروض الصيف..." />
+              <p v-if="form.errors.title" class="text-xs text-red-500 mt-1 font-medium">{{ form.errors.title }}</p>
             </div>
 
             <!-- Link Type -->
@@ -90,6 +92,7 @@
                   <span class="text-xs font-medium">{{ opt.label }}</span>
                 </label>
               </div>
+              <p v-if="form.errors.link_type" class="text-xs text-red-500 mt-1 font-medium">{{ form.errors.link_type }}</p>
             </div>
 
             <!-- Category Selector -->
@@ -99,6 +102,7 @@
                 <option value="">-- اختر قسماً --</option>
                 <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
+              <p v-if="form.errors.category_id" class="text-xs text-red-500 mt-1 font-medium">{{ form.errors.category_id }}</p>
             </div>
 
             <!-- Product Selector -->
@@ -108,13 +112,15 @@
                 <option value="">-- اختر منتجاً --</option>
                 <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
               </select>
+              <p v-if="form.errors.product_id" class="text-xs text-red-500 mt-1 font-medium">{{ form.errors.product_id }}</p>
             </div>
 
-            <!-- External Link (if link_type = external) -->
+            <!-- External Link -->
             <div v-if="form.link_type === 'external'" class="form-group">
               <label class="form-label">الرابط الخارجي *</label>
               <input v-model="form.link" class="form-input" dir="ltr"
                 placeholder="https://example.com/..." :required="form.link_type === 'external'" />
+              <p v-if="form.errors.link" class="text-xs text-red-500 mt-1 font-medium">{{ form.errors.link }}</p>
             </div>
 
             <button type="submit" :disabled="form.processing" class="btn-primary w-full">
