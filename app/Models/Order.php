@@ -35,7 +35,7 @@ class Order extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return self::$statuses[$this->status] ?? $this->status;
+        return self::$statuses[$this->status ?? 'pending'] ?? ($this->status ?? 'قيد الانتظار');
     }
 
     // ── Scopes ──────────────────────────────

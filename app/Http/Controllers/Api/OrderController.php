@@ -43,7 +43,7 @@ class OrderController extends Controller
     {
         $data = $request->validate([
             'governorate_id' => ['required', 'exists:governorates,id'],
-            'district_id'    => ['nullable', 'exists:districts,id'],
+            'district_id'    => ['required', 'exists:districts,id'], // Made required to follow DB schema
             'delivery_point' => ['required', 'string'],
             'phone'          => ['required', 'string'],
             'coupon_id'      => ['nullable', 'exists:coupons,id'],
@@ -122,10 +122,11 @@ class OrderController extends Controller
                 'discount_amount' => $discountAmount,
                 'total_price'     => max(0, $subtotal - $discountAmount),
                 'notes'           => $data['notes'] ?? null,
+                'status'          => 'pending',
             ]);
 
             foreach ($orderItemsData as $item) {
-                OrderItem::create(['order_id' => $order->id, ...$item]);
+                OrderItem::create(array_merge(['order_id' => $order->id], $item));
             }
 
             // Deduct stock after successful creation
@@ -164,18 +165,19 @@ class OrderController extends Controller
 
                 if ($botToken && $chatId) {
                     $dashboardName = \App\Models\Setting::get('dashboard_name', 'أمواج ديالى');
-                    $message = "🚨 *طلب جديد وصل إلى {$dashboardName}!* 🚨\n\n";
+                    $safeDashboardName = str_replace('_', '\\_', $dashboardName);
+                    $message = "🚨 *طلب جديد وصل إلى {$safeDashboardName}!* 🚨\n\n";
                     $message .= "📦 *رقم الفاتورة:* `{$order->invoice_number}`\n";
                     $message .= "👤 *الزبون:* {$request->user()->first_name} {$request->user()->last_name}\n";
                     
                     $districtName = $order->district ? $order->district->name : 'غير محدد';
                     $govName = $order->district && $order->district->governorate ? $order->district->governorate->name : 'غير محدد';
                     
-                    $message .= "📍 *المحافظة:* {$govName} - {$districtName}\n";
+                    $message .= "📍 *المحافظة:* " . str_replace('_', '\\_', $govName) . " - " . str_replace('_', '\\_', $districtName) . "\n";
                     $message .= "💰 *قيمة الطلب:* " . number_format($order->total_price) . " د.ع\n";
                     
                     if ($order->notes) {
-                        $message .= "📝 *ملاحظة الزبون:* {$order->notes}\n";
+                        $message .= "📝 *ملاحظة الزبون:* " . str_replace('_', '\\_', $order->notes) . "\n";
                     }
 
                     $message .= "\n[🔗 عرض الطلب في لوحة التحكم](" . route('admin.orders.show', $order->id) . ")";
@@ -224,8 +226,8 @@ class OrderController extends Controller
                 'invoice_number' => $o->invoice_number,
                 'total_price'    => $o->total_price,
                 'discount_amount'=> $o->discount_amount,
-                'status'         => $o->status,
-                'status_label'   => $o->status_label,
+                'status'         => $o->status ?? 'pending',
+                'status_label'   => $o->status_label ?? 'قيد الانتظار',
                 'delivery_point' => $o->delivery_point,
                 'phone'          => $o->phone,
                 'governorate'    => $o->district?->governorate?->name,

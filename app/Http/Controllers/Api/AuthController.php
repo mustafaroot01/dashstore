@@ -24,6 +24,7 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'تم إرسال رمز التحقق',
             'channel' => Setting::get('otp_channel', 'whatsapp'),
+            'message_id' => $result['messageId'] ?? null,
             'data'    => $result,
         ]);
     }
@@ -31,17 +32,49 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'phone'    => ['required'],
-            'password' => ['required'],
+            'phone'      => ['required'],
+            'password'   => ['nullable', 'string'],
+            'otp'        => ['nullable', 'string', 'min:4', 'max:6'],
+            'message_id' => ['nullable', 'string'],
         ]);
 
-        $user = User::where('phone', $request->phone)->first();
+        $phone = $request->phone;
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'رقم الهاتف أو كلمة المرور غير صحيحة',
-            ], 401);
+        // ── Option A: OTP Login ─────────────────────────────────────
+        if ($request->has('otp')) {
+            $verify = $this->otp->verifyOtp($request->message_id ?? '', $request->otp);
+
+            if (! ($verify['success'] ?? false)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'رمز التحقق غير صحيح أو منتهي الصلاحية',
+                ], 422);
+            }
+
+            // Find or Create User (Social/Phone Login Style)
+            $user = User::where('phone', $phone)->first();
+            
+            if (!$user) {
+                // Auto-register if user doesn't exist
+                $user = User::create([
+                    'phone'      => $phone,
+                    'first_name' => 'عميل',
+                    'last_name'  => 'جديد',
+                    'password'   => Hash::make(str()->random(16)),
+                    'is_active'  => true,
+                ]);
+            }
+        } 
+        // ── Option B: Password Login ────────────────────────────────
+        else {
+            $user = User::where('phone', $phone)->first();
+
+            if (! $user || ! Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'رقم الهاتف أو كلمة المرور غير صحيحة',
+                ], 401);
+            }
         }
 
         if (! $user->is_active) {
