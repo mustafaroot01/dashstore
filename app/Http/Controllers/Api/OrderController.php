@@ -141,7 +141,8 @@ class OrderController extends Controller
                 $chatId   = \App\Models\Setting::get('telegram_chat_id');
 
                 if ($botToken && $chatId) {
-                    $message = "🚨 *طلب جديد وصلك الآن!* 🚨\n\n";
+                    $dashboardName = \App\Models\Setting::get('dashboard_name', 'أمواج ديالى');
+                    $message = "🚨 *طلب جديد وصل إلى {$dashboardName}!* 🚨\n\n";
                     $message .= "📦 *رقم الفاتورة:* `{$order->invoice_number}`\n";
                     $message .= "👤 *الزبون:* {$request->user()->first_name} {$request->user()->last_name}\n";
                     

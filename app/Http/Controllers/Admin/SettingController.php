@@ -62,9 +62,10 @@ class SettingController extends Controller
         ]);
 
         try {
+            $dashboardName = Setting::get('dashboard_name', 'أمواج ديالى');
             $response = \Illuminate\Support\Facades\Http::timeout(5)->post("https://api.telegram.org/bot{$request->telegram_bot_token}/sendMessage", [
                 'chat_id'    => $request->telegram_chat_id,
-                'text'       => "👋 *رسالة تجريبية من أمواج ديالى*\n\nإذا وصلتك هذه الرسالة، فهذا يعني أن ربط التلغرام جاهز ويعمل بنجاح لتبليغك بالطلبات الجديدة! ✅",
+                'text'       => "👋 *رسالة تجريبية من {$dashboardName}*\n\nإذا وصلتك هذه الرسالة، فهذا يعني أن ربط التلغرام جاهز ويعمل بنجاح لتبليغك بالطلبات الجديدة! ✅",
                 'parse_mode' => 'Markdown',
             ]);
 

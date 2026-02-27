@@ -9,14 +9,17 @@
     <div class="relative w-full max-w-md">
       <!-- Logo -->
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl
+        <div v-if="$page.props.app_settings?.dashboard_logo" class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md shadow-lg border border-white/20 overflow-hidden mb-4 p-3">
+           <img :src="`/storage/${$page.props.app_settings.dashboard_logo}`" class="w-full h-full object-contain" />
+        </div>
+        <div v-else class="inline-flex items-center justify-center w-16 h-16 rounded-2xl
                     bg-gradient-to-br from-cyan-400 to-blue-600 shadow-lg shadow-blue-500/30 mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
           </svg>
         </div>
-        <h1 class="text-2xl font-bold text-white">أمواج ديالى</h1>
+        <h1 class="text-2xl font-bold text-white">{{ $page.props.app_settings?.dashboard_name || 'أمواج ديالى' }}</h1>
         <p class="text-slate-400 text-sm mt-1">لوحة تحكم المشرف</p>
       </div>
 
@@ -89,7 +92,7 @@
       </div>
 
       <p class="text-center text-slate-600 text-xs mt-6">
-        © {{ new Date().getFullYear() }} أمواج ديالى — جميع الحقوق محفوظة
+        © {{ new Date().getFullYear() }} {{ $page.props.app_settings?.dashboard_name || 'أمواج ديالى' }} — جميع الحقوق محفوظة
       </p>
     </div>
   </div>
