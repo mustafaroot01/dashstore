@@ -39,10 +39,11 @@ class SliderController extends Controller
         $data['order'] = Slider::max('order') + 1;
 
         // Clear irrelevant fields
-        if ($data['link_type'] === 'category') { $data['link'] = null; $data['product_id'] = null; }
-        if ($data['link_type'] === 'product')  { $data['link'] = null; $data['category_id'] = null; }
-        if ($data['link_type'] === 'external') { $data['category_id'] = null; $data['product_id'] = null; }
-        if (! $data['link_type'])              { $data['link'] = null; $data['category_id'] = null; $data['product_id'] = null; }
+        $linkType = $data['link_type'] ?? null;
+        if ($linkType === 'category') { $data['link'] = null; $data['product_id'] = null; }
+        if ($linkType === 'product')  { $data['link'] = null; $data['category_id'] = null; }
+        if ($linkType === 'external') { $data['category_id'] = null; $data['product_id'] = null; }
+        if (! $linkType)              { $data['link'] = null; $data['category_id'] = null; $data['product_id'] = null; }
 
         Slider::create($data);
         return back()->with('success', 'تم إضافة السلايدة');
@@ -66,10 +67,11 @@ class SliderController extends Controller
             unset($data['image']);
         }
 
-        if ($data['link_type'] === 'category') { $data['link'] = null; $data['product_id'] = null; }
-        if ($data['link_type'] === 'product')  { $data['link'] = null; $data['category_id'] = null; }
-        if ($data['link_type'] === 'external') { $data['category_id'] = null; $data['product_id'] = null; }
-        if (! ($data['link_type'] ?? null))    { $data['link'] = null; $data['category_id'] = null; $data['product_id'] = null; }
+        $linkType = $data['link_type'] ?? null;
+        if ($linkType === 'category') { $data['link'] = null; $data['product_id'] = null; }
+        if ($linkType === 'product')  { $data['link'] = null; $data['category_id'] = null; }
+        if ($linkType === 'external') { $data['category_id'] = null; $data['product_id'] = null; }
+        if (! $linkType)              { $data['link'] = null; $data['category_id'] = null; $data['product_id'] = null; }
 
         $slider->update($data);
         return back()->with('success', 'تم تعديل السلايدة');

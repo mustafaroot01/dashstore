@@ -132,7 +132,7 @@ class InventoryController extends Controller
 
         return new StreamedResponse($callback, 200, $headers);
     }
-    public function alerts(Request $request): Response
+    public function alerts(Request $request)
     {
         $lowStockThreshold = (int) \App\Models\Setting::get('low_stock_threshold', 3);
         $search = $request->query('search');
