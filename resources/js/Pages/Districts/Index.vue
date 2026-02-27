@@ -3,15 +3,19 @@
     <div class="max-w-3xl">
       <!-- Add form -->
       <div class="card mb-4 min-w-max">
-        <form @submit.prevent="addDistrict" class="flex gap-3">
-          <select v-model="form.governorate_id" class="form-input flex-1 max-w-xs" required>
-            <option value="" disabled>اختر المحافظة...</option>
-            <option v-for="g in governorates" :key="g.id" :value="g.id">{{ g.name }}</option>
-          </select>
-          <input v-model="form.name" type="text" placeholder="اسم القضاء الجديد..." class="form-input flex-1" required />
-          <button type="submit" :disabled="form.processing" class="btn-primary">
-            + إضافة قضاء
-          </button>
+        <form @submit.prevent="addDistrict" class="flex flex-col gap-2">
+          <div class="flex gap-3">
+            <select v-model="form.governorate_id" class="form-input flex-1 max-w-xs" required>
+              <option value="" disabled>اختر المحافظة...</option>
+              <option v-for="g in governorates" :key="g.id" :value="g.id">{{ g.name }}</option>
+            </select>
+            <input v-model="form.name" type="text" placeholder="اسم القضاء الجديد..." class="form-input flex-1" required />
+            <button type="submit" :disabled="form.processing" class="btn-primary whitespace-nowrap">
+              + إضافة قضاء
+            </button>
+          </div>
+          <div v-if="form.errors.governorate_id" class="text-sm text-red-500">{{ form.errors.governorate_id }}</div>
+          <div v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</div>
         </form>
       </div>
 
